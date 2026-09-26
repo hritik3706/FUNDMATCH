@@ -1,0 +1,92 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { Icon } from "@/components/ui";
+
+const LOGO =
+  "https://lh3.googleusercontent.com/aida/AEtjO1X2-QxHc1Kr8xPGsumrtfp933gfMf3XQ6JpyE7o698os-Zj5xV78y_-hBv43fmRv5_MzOUj_4L8A65QR08vsiMME3ie3Wu8ozx-b0mHO771zTEqI5kQ0d6RJ-648DwabhZdgA9NyVnRBbwJb9XONXfEEZnjhOdYvG5zar3OWUhvGeWcfXTcgnkMWx0oKP7J5mg7_2Ye_JkrPBSq5gRQ2QjgfS183dEDWENVtmDO6dETb09-WKT49hA3LOcW";
+
+export function Brand() {
+  return (
+    <Link href="/" className="flex items-center gap-3">
+      <img alt="PS41 brand mark" className="h-8 w-auto object-contain" src={LOGO} />
+      <span className="font-headline-sm text-headline-sm font-bold tracking-tight text-primary">PS41</span>
+    </Link>
+  );
+}
+
+export function PublicHeader() {
+  return (
+    <header className="sticky top-0 z-50 w-full bg-surface-container-lowest shadow-sm">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
+        <div className="flex items-center gap-6">
+          <Brand />
+          <span className="hidden items-center rounded bg-surface-container-low px-2 py-0.5 font-label-md text-xs text-secondary md:inline-flex">
+            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-secondary" />
+            Gazette index
+          </span>
+        </div>
+        <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
+          <a className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/#how-it-works">How it works</a>
+          <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/schemes">Schemes</Link>
+          <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/schemes/ministries">Ministries</Link>
+          <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/help">About</Link>
+        </nav>
+        <div className="flex items-center gap-3">
+          <Link className="px-2 py-1 font-label-lg text-label-lg text-on-surface-variant hover:text-primary" href="/login">Sign in</Link>
+          <Link className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2.5 font-label-lg text-label-lg text-on-primary shadow-sm hover:bg-inverse-surface" href="/onboarding/story">
+            Check eligibility
+            <Icon name="arrow_forward" className="text-sm" />
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function PublicFooter() {
+  return (
+    <footer className="w-full bg-surface-container-lowest py-16 text-on-surface">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-1 gap-10 pb-12 md:grid-cols-4">
+          <div className="space-y-4 md:col-span-2">
+            <Brand />
+            <p className="max-w-sm font-body-md text-body-md text-on-surface-variant">
+              Statutory startup grant discovery, eligibility verification, and application roadmaps across Indian central and state programmes.
+            </p>
+          </div>
+          <div>
+            <h2 className="mb-4 font-label-lg text-label-lg font-bold text-primary">Explore</h2>
+            <ul className="space-y-2.5 font-body-sm text-body-sm text-on-surface-variant">
+              <li><Link className="hover:text-primary" href="/schemes">Scheme directory</Link></li>
+              <li><Link className="hover:text-primary" href="/schemes/ministries">Grouped catalogue</Link></li>
+              <li><Link className="hover:text-primary" href="/help">How matching works</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h2 className="mb-4 font-label-lg text-label-lg font-bold text-primary">Account</h2>
+            <ul className="space-y-2.5 font-body-sm text-body-sm text-on-surface-variant">
+              <li><Link className="hover:text-primary" href="/signup">Create account</Link></li>
+              <li><Link className="hover:text-primary" href="/login">Sign in</Link></li>
+              <li><Link className="hover:text-primary" href="/dashboard">Dashboard</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="rounded-t-xl bg-surface-container-low p-6 text-xs text-on-surface-variant">
+          <p>
+            <strong className="font-semibold text-primary">Institutional disclaimer:</strong> PS41 is an independent statutory intelligence platform. It is not a government agency. Final approvals remain with the administering authority. Official links are shown only when the catalogue provides them.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function PublicFrame({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-surface">
+      <PublicHeader />
+      <main className="flex-1">{children}</main>
+      <PublicFooter />
+    </div>
+  );
+}
