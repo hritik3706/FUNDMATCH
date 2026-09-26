@@ -15,6 +15,35 @@ export type AdvisorDraft = {
   websiteUrl: string | null;
   founderCount: number | null;
   problem: string | null;
+  city: string | null;
+  technology: string | null;
+  fundingPurpose: string | null;
+  fundingSource: string | null;
+  entityType: string | null;
+  subSector: string | null;
+  businessModel: string | null;
+  incorporationStatus: string | null;
+  udyamRegistered: boolean | null;
+  hasRevenue: boolean | null;
+  gstApplicable: boolean | null;
+};
+
+export type AdvisorInsight = {
+  statedIntent: string | null;
+  targetSector: string | null;
+  targetStage: string | null;
+  technology: string | null;
+  subSector: string | null;
+  entityType: string | null;
+  city: string | null;
+  gstLabel: string | null;
+  dpiitLabel: string | null;
+  udyamLabel: string | null;
+  incorporationLabel: string | null;
+  fundingPurpose: string | null;
+  revenueLabel: string | null;
+  completeness: number;
+  summary: string;
 };
 
 export type AdvisorAnalysis = {
@@ -34,15 +63,17 @@ export type AdvisorReply = {
   profile: AdvisorDraft;
   missingFields: string[];
   profileComplete: boolean;
-  intent: "profile_building" | "analyze" | "results" | "follow_up";
+  intent: "profile_building" | "confirm" | "analyze" | "results" | "follow_up";
+  insight: AdvisorInsight;
   analysis: AdvisorAnalysis | null;
   savedProfile: Profile | null;
   advisorMode: "gemini" | "rules";
 };
 
-export function sendAdvisorMessage(conversationId: string | null, message: string) {
+export function sendAdvisorMessage(conversationId: string | null, message: string, signal?: AbortSignal) {
   return api<AdvisorReply>("/api/chat", {
     method: "POST",
+    signal,
     body: JSON.stringify({
       ...(conversationId ? { conversationId } : {}),
       message,

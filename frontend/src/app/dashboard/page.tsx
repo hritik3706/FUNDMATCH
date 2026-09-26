@@ -6,14 +6,14 @@ import { AppShell } from "@/components/app-shell";
 import { DashboardSchemeCard } from "@/components/dashboard-scheme-card";
 import { useSession } from "@/components/session-provider";
 import { Button, PageHeader, Panel, StateMessage } from "@/components/ui";
-import { inr } from "@/lib/format";
+import { formatInr, storedToInr } from "@/lib/extractStory";
 import type { SchemeMatch, SchemeSummary } from "@/lib/types";
 import { savedSchemeIds, toggleSaved } from "@/services/accountService";
 import { analyzeProfile } from "@/services/matchService";
 import { listSchemes } from "@/services/schemeService";
 
 export default function DashboardPage() {
-  const { profile } = useSession();
+  const { profile, story } = useSession();
   const [matches, setMatches] = useState<SchemeMatch[]>([]);
   const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
@@ -63,7 +63,7 @@ export default function DashboardPage() {
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Relevant schemes</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{matches.length}</p></Panel>
             <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Fully eligible</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{strong}</p></Panel>
-            <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Funding sought</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{inr(profile.fundingNeeded)}</p></Panel>
+            <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Funding sought</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{formatInr(story.fundingInr || storedToInr(profile.fundingNeeded))}</p></Panel>
           </div>
           {matches.length === 0 ? (
             <StateMessage title="No matches returned" body="The API did not return schemes for this profile." />

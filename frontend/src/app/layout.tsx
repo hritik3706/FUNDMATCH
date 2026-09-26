@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
+import { AdvisorChatProvider } from "@/components/advisor-chat";
+import { FloatingAdvisor } from "@/components/floating-advisor";
 import { SessionProvider } from "@/components/session-provider";
 
 const inter = Inter({
@@ -39,7 +41,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
       </head>
       <body className={`${inter.variable} ${manrope.variable} ${mono.variable} bg-surface font-body-md text-body-md text-on-surface antialiased`}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <AdvisorChatProvider>
+            {children}
+            <FloatingAdvisor />
+          </AdvisorChatProvider>
+        </SessionProvider>
       </body>
     </html>
   );

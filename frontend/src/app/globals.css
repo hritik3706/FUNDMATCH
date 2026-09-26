@@ -37,3 +37,189 @@ body {
   outline: 2px solid #0051d5;
   outline-offset: 2px;
 }
+
+.advisor-dock {
+  position: fixed;
+  z-index: 40;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.advisor-dock > * {
+  pointer-events: auto;
+}
+
+.advisor-launcher {
+  position: relative;
+  display: inline-flex;
+  height: 54px;
+  width: 54px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 0;
+  background: #00050e;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(0, 5, 14, 0.22);
+  cursor: pointer;
+  animation: advisor-enter 280ms ease, advisor-glow 3.2s ease-in-out 280ms infinite;
+}
+
+.advisor-launcher-open {
+  animation: advisor-enter 280ms ease;
+  box-shadow: 0 8px 20px rgba(0, 5, 14, 0.18);
+}
+
+.advisor-hint {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  height: 10px;
+  width: 10px;
+  border-radius: 9999px;
+  background: #ffb95f;
+  box-shadow: 0 0 0 2px #00050e;
+}
+
+.advisor-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  border-radius: 8px;
+  background: #00050e;
+  color: #ffffff;
+  padding: 6px 10px;
+  font-family: var(--font-inter), Inter, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.advisor-launcher:hover .advisor-tooltip,
+.advisor-launcher:focus-visible .advisor-tooltip {
+  opacity: 1;
+}
+
+.advisor-panel {
+  display: flex;
+  width: min(400px, calc(100vw - 32px));
+  height: min(640px, calc(100dvh - 18.5rem));
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid #c4c6cd;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(11, 31, 51, 0.16);
+  animation: advisor-panel 240ms ease;
+}
+
+.advisor-typing {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.advisor-typing span {
+  height: 6px;
+  width: 6px;
+  border-radius: 9999px;
+  background: #0051d5;
+  animation: advisor-dot 1s ease-in-out infinite;
+}
+
+.advisor-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.advisor-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (min-width: 768px) {
+  .advisor-dock {
+    right: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  .advisor-launcher {
+    height: 58px;
+    width: 58px;
+  }
+
+  .advisor-panel {
+    width: min(400px, calc(100vw - 40px));
+    height: min(640px, calc(100dvh - 12rem));
+  }
+}
+
+@media (min-width: 1024px) {
+  .advisor-dock {
+    right: 24px;
+    bottom: max(24px, env(safe-area-inset-bottom));
+  }
+
+  .advisor-launcher {
+    height: 60px;
+    width: 60px;
+  }
+}
+
+@keyframes advisor-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes advisor-glow {
+  0%,
+  100% {
+    box-shadow: 0 10px 24px rgba(0, 5, 14, 0.22), 0 0 0 0 rgba(0, 81, 213, 0.28);
+  }
+  50% {
+    box-shadow: 0 12px 28px rgba(0, 5, 14, 0.24), 0 0 0 8px rgba(0, 81, 213, 0.08);
+  }
+}
+
+@keyframes advisor-panel {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes advisor-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advisor-launcher,
+  .advisor-panel,
+  .advisor-typing span {
+    animation: none;
+  }
+}

@@ -1,11 +1,19 @@
 import type { BackendEligibilityStatus, DisplayEligibility } from "@/lib/types";
 
-export function inr(amount: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
+function lakhLabel(lakhs: number) {
+  if (lakhs >= 100) {
+    const crore = lakhs / 100;
+    const text = Number.isInteger(crore) ? String(crore) : crore.toFixed(2).replace(/\.?0+$/, "");
+    return `Rs ${text} crore`;
+  }
+  return `Rs ${lakhs} lakh`;
+}
+
+export function fundingRange(min: number, max: number) {
+  if (!min && !max) return "Amount not stated";
+  if (!min) return `Up to ${lakhLabel(max)}`;
+  if (min === max) return lakhLabel(min);
+  return `${lakhLabel(min)} – ${lakhLabel(max)}`;
 }
 
 export function displayStatus(status: BackendEligibilityStatus | null): DisplayEligibility {
@@ -29,9 +37,8 @@ export function statusLabel(status: DisplayEligibility) {
 }
 
 export function fundingLabel(min?: number | null, max?: number | null) {
-  if (max == null || max <= 0) return null;
-  if (min == null || min <= 0 || min === max) return `Up to ${inr(max)}`;
-  return `${inr(min)} – ${inr(max)}`;
+  if ((min == null || min <= 0) && (max == null || max <= 0)) return null;
+  return fundingRange(min ?? 0, max ?? 0);
 }
 
 export function timeAgo(iso: string) {

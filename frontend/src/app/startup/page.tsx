@@ -24,8 +24,12 @@ export default function StartupPage() {
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-container-high">
             <div className="h-full bg-secondary" style={{ width: `${completion}%` }} />
           </div>
-          <p className="mt-3 font-body-sm text-body-sm text-on-surface-variant">Future plans: {notProvided(story.futureIntent)}</p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">Documents: Not provided</p>
+          <p className="mt-3 font-body-sm text-body-sm text-on-surface-variant">Product: {notProvided(story.subSector)}</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">Purpose: {notProvided(story.fundingPurpose)}</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">Technology: {notProvided(story.technology)}</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">GST: {notProvided(story.gstLabel ?? profile.gstStatus)}</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">Udyam: {notProvided(story.udyamLabel)}</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">Revenue: {notProvided(story.revenueLabel)}</p>
         </Panel>
       ) : null}
       {ready ? (

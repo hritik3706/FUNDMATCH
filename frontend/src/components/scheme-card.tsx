@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { inr } from "@/lib/format";
+import { fundingRange } from "@/lib/format";
 import type { SchemeSummary } from "@/lib/types";
 import { Icon } from "@/components/ui";
 
@@ -19,7 +19,7 @@ export function SchemeCard({ scheme }: { scheme: SchemeSummary }) {
           <div className="flex justify-between gap-4">
             <dt className="text-on-surface-variant">Funding range</dt>
             <dd className="font-bold text-primary">
-              {inr(scheme.fundingMin)} – {inr(scheme.fundingMax)}
+              {fundingRange(scheme.fundingMin, scheme.fundingMax)}
             </dd>
           </div>
           <div className="flex justify-between gap-4">

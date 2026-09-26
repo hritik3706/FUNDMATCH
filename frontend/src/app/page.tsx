@@ -54,7 +54,7 @@ export default function LandingPage() {
                 <span className="rounded bg-surface-container-highest px-2 py-0.5 font-data-mono text-xs text-primary">Profile to roadmap</span>
               </div>
               <ol className="space-y-3 font-data-mono text-xs">
-                {["Startup story and intent", "Profile review", "Classification", "Scheme catalogue", "Eligibility and gaps", "Application roadmap"].map((label, index) => (
+                {["Startup story", "Profile review", "Saved profile", "Scheme catalogue", "Eligibility and gaps", "Application roadmap"].map((label, index) => (
                   <li key={label} className="flex items-center justify-between rounded bg-surface p-3 shadow-sm">
                     <span className="flex items-center gap-3">
                       <span className="flex h-6 w-6 items-center justify-center rounded bg-secondary-fixed font-bold text-secondary">{String(index + 1).padStart(2, "0")}</span>

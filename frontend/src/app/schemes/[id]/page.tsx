@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useSession } from "@/components/session-provider";
 import { Button, PageHeader, Panel, StateMessage, StatusBadge } from "@/components/ui";
-import { displayStatus, inr, notProvided } from "@/lib/format";
+import { displayStatus, fundingRange, notProvided } from "@/lib/format";
 import type { Scheme, SchemeMatch } from "@/lib/types";
 import { savedSchemeIds, toggleSaved, trackApplication } from "@/services/accountService";
 import { getMatch } from "@/services/matchService";
@@ -87,7 +87,7 @@ export default function SchemeDetailPage() {
               </Panel>
               <Panel>
                 <h2 className="font-headline-md text-headline-md text-primary">Funding</h2>
-                <p className="mt-2 font-data-mono text-data-mono text-primary">{inr(scheme.fundingMin)} – {inr(scheme.fundingMax)}</p>
+                <p className="mt-2 font-data-mono text-data-mono text-primary">{fundingRange(scheme.fundingMin, scheme.fundingMax)}</p>
                 <p className="mt-2 font-body-sm text-body-sm text-on-surface-variant">Dates: Not provided</p>
                 <p className="font-body-sm text-body-sm text-on-surface-variant">Application process: Not provided</p>
               </Panel>

@@ -6,24 +6,28 @@ import { useSession } from "@/components/session-provider";
 import { Button, SelectField, TextField } from "@/components/ui";
 import { addNotification } from "@/services/accountService";
 import { createProfile } from "@/services/profileService";
-import { FOUNDER_EXPERIENCE, GST_STATUSES, PROFILE_LOCATIONS, SECTORS, STAGES, type CreateProfileInput, type Profile } from "@/lib/types";
+import { extractStory, inrToLakhs, storedToInr } from "@/lib/extractStory";
+import { FOUNDER_EXPERIENCE, GST_STATUSES, PROFILE_LOCATIONS, SECTORS, STAGES, type CreateProfileInput, type Profile, type ProfileLocation, type Sector, type Stage } from "@/lib/types";
 
 export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial?: Profile | null; submitLabel?: string }) {
   const router = useRouter();
-  const { saveProfile } = useSession();
+  const { saveProfile, saveStory, story } = useSession();
+  const extracted = extractStory(story.text || "");
+  const fromStory = Boolean(story.text.trim());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [product, setProduct] = useState(extracted.product || story.subSector);
   const [form, setForm] = useState<CreateProfileInput>({
-    name: initial?.name ?? "",
-    sector: initial?.sector ?? "Other",
-    stage: initial?.stage ?? "Pre-seed",
-    location: initial?.location ?? "Karnataka",
-    fundingNeeded: initial?.fundingNeeded ?? 0,
+    name: extracted.name || initial?.name || "",
+    sector: (extracted.sector || initial?.sector || "") as CreateProfileInput["sector"],
+    stage: (extracted.stage || initial?.stage || "") as CreateProfileInput["stage"],
+    location: (extracted.location || (fromStory ? "" : initial?.location || "")) as CreateProfileInput["location"],
+    fundingNeeded: extracted.fundingInr || storedToInr(initial?.fundingNeeded),
     founderExperience: initial?.founderExperience ?? "First-time",
-    incorporationDate: initial?.incorporationDate ?? "",
-    gstStatus: initial?.gstStatus ?? undefined,
-    dpiitRegistration: initial?.dpiitRegistration ?? false,
-    previousFunding: initial?.previousFunding ?? 0,
+    incorporationDate: fromStory ? "" : (initial?.incorporationDate ?? ""),
+    gstStatus: extracted.gstStatus ?? (fromStory ? undefined : initial?.gstStatus ?? undefined),
+    dpiitRegistration: fromStory ? false : (initial?.dpiitRegistration ?? false),
+    previousFunding: extracted.previousFundingInr || (fromStory ? 0 : storedToInr(initial?.previousFunding)),
     websiteUrl: initial?.websiteUrl ?? "",
   });
 
@@ -34,20 +38,35 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (!form.name.trim() || form.fundingNeeded <= 0) {
-      setError("Name is required, and funding needed must be a positive number.");
+    if (!form.name.trim() || !form.sector || !form.stage || !form.location || form.fundingNeeded <= 0) {
+      setError("Add a name, sector, stage, state, and a funding amount in rupees.");
       return;
     }
     setLoading(true);
     try {
       const payload: CreateProfileInput = {
         ...form,
+        sector: form.sector as Sector,
+        stage: form.stage as Stage,
+        location: form.location as ProfileLocation,
         name: form.name.trim(),
+        fundingNeeded: inrToLakhs(form.fundingNeeded),
+        previousFunding: form.previousFunding ? inrToLakhs(form.previousFunding) : undefined,
         incorporationDate: form.incorporationDate || undefined,
         gstStatus: form.gstStatus || undefined,
-        previousFunding: form.previousFunding || undefined,
         websiteUrl: form.websiteUrl?.trim() || undefined,
       };
+      saveStory({
+        ...story,
+        text: story.text,
+        futureIntent: "",
+        subSector: product,
+        targetSector: form.sector,
+        targetStage: form.stage,
+        technology: extracted.technology,
+        fundingPurpose: extracted.purpose,
+        fundingInr: form.fundingNeeded,
+      });
       const result = await createProfile(payload);
       saveProfile(result.profile);
       addNotification({
@@ -66,18 +85,22 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
 
   return (
     <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={onSubmit}>
+      <TextField label="What you are building" name="product" value={product} onChange={(event) => setProduct(event.target.value)} />
       <TextField label="Startup name" name="name" value={form.name} onChange={(event) => set("name", event.target.value)} />
       <TextField label="Startup website" name="websiteUrl" type="url" placeholder="https://yourstartup.com" value={form.websiteUrl ?? ""} onChange={(event) => set("websiteUrl", event.target.value)} hint="Public http or https address. The page text is used when scoring scheme fit." />
       <SelectField label="Sector" name="sector" value={form.sector} onChange={(event) => set("sector", event.target.value as CreateProfileInput["sector"])}>
+        <option value="">Select sector</option>
         {SECTORS.map((sector) => <option key={sector}>{sector}</option>)}
       </SelectField>
       <SelectField label="Stage" name="stage" value={form.stage} onChange={(event) => set("stage", event.target.value as CreateProfileInput["stage"])}>
+        <option value="">Select stage</option>
         {STAGES.map((stage) => <option key={stage}>{stage}</option>)}
       </SelectField>
       <SelectField label="Location" name="location" value={form.location} onChange={(event) => set("location", event.target.value as CreateProfileInput["location"])}>
+        <option value="">Select state</option>
         {PROFILE_LOCATIONS.map((location) => <option key={location}>{location}</option>)}
       </SelectField>
-      <TextField label="Funding needed (INR)" name="fundingNeeded" type="number" min={1} value={form.fundingNeeded || ""} onChange={(event) => set("fundingNeeded", Number(event.target.value))} />
+      <TextField label="Funding needed (INR)" name="fundingNeeded" type="number" min={1} value={form.fundingNeeded || ""} onChange={(event) => set("fundingNeeded", Number(event.target.value))} hint="Enter rupees. 250000 is saved as 3 lakh for scheme matching." />
       <SelectField label="Founder experience" name="founderExperience" value={form.founderExperience} onChange={(event) => set("founderExperience", event.target.value as CreateProfileInput["founderExperience"])}>
         {FOUNDER_EXPERIENCE.map((item) => <option key={item}>{item}</option>)}
       </SelectField>

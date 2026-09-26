@@ -26,6 +26,17 @@ export type AdvisorDraft = {
   websiteUrl: string | null;
   founderCount: number | null;
   problem: string | null;
+  city: string | null;
+  technology: string | null;
+  fundingPurpose: string | null;
+  fundingSource: string | null;
+  entityType: string | null;
+  subSector: string | null;
+  businessModel: string | null;
+  incorporationStatus: string | null;
+  udyamRegistered: boolean | null;
+  hasRevenue: boolean | null;
+  gstApplicable: boolean | null;
 };
 
 export type DraftUpdates = Partial<AdvisorDraft>;
@@ -44,6 +55,17 @@ export const emptyDraft = (): AdvisorDraft => ({
   websiteUrl: null,
   founderCount: null,
   problem: null,
+  city: null,
+  technology: null,
+  fundingPurpose: null,
+  fundingSource: null,
+  entityType: null,
+  subSector: null,
+  businessModel: null,
+  incorporationStatus: null,
+  udyamRegistered: null,
+  hasRevenue: null,
+  gstApplicable: null,
 });
 
 const CITY_TO_LOCATION: Record<string, ProfileLocation> = {
@@ -122,7 +144,79 @@ export function materialKey(draft: AdvisorDraft): string {
     gstStatus: draft.gstStatus,
     previousFunding: draft.previousFunding,
     incorporationDate: draft.incorporationDate,
+    fundingPurpose: draft.fundingPurpose,
+    technology: draft.technology,
   });
+}
+
+export type ProfileInsight = {
+  statedIntent: string | null;
+  targetSector: string | null;
+  targetStage: string | null;
+  technology: string | null;
+  subSector: string | null;
+  entityType: string | null;
+  city: string | null;
+  gstLabel: string | null;
+  dpiitLabel: string | null;
+  udyamLabel: string | null;
+  incorporationLabel: string | null;
+  fundingPurpose: string | null;
+  revenueLabel: string | null;
+  completeness: number;
+  summary: string;
+};
+
+export function profileInsight(draft: AdvisorDraft): ProfileInsight {
+  const statedIntent = draft.fundingPurpose ?? draft.problem;
+  const gstLabel = labelGst(draft);
+  const dpiitLabel = draft.dpiitRegistration === null ? null : draft.dpiitRegistration ? "Recognised" : "Not recognised";
+  const udyamLabel = draft.udyamRegistered === null ? null : draft.udyamRegistered ? "Registered" : "Not registered";
+  const incorporationLabel = draft.incorporationStatus ?? (draft.incorporationDate ? "Incorporated" : null);
+  const revenueLabel = draft.hasRevenue === null ? null : draft.hasRevenue ? "Has revenue" : "Pre-revenue";
+  const completeness = completenessScore(draft);
+  const place = [draft.city, draft.location].filter(Boolean).join(", ");
+  const summary = draft.sector
+    ? `This is a ${draft.stage ?? "startup"} ${draft.sector} startup${place ? ` in ${place}` : ""}${draft.fundingNeeded ? `, seeking Rs ${draft.fundingNeeded} lakh` : ""}${statedIntent ? ` for ${statedIntent.toLowerCase()}` : ""}.`
+    : "Tell me what you are building, where you are based, and how much funding you need.";
+  return {
+    statedIntent,
+    targetSector: draft.sector,
+    targetStage: draft.stage,
+    technology: draft.technology,
+    subSector: draft.subSector,
+    entityType: draft.entityType,
+    city: draft.city,
+    gstLabel,
+    dpiitLabel,
+    udyamLabel,
+    incorporationLabel,
+    fundingPurpose: draft.fundingPurpose,
+    revenueLabel,
+    completeness,
+    summary,
+  };
+}
+
+export function confirmationMessage(draft: AdvisorDraft): string {
+  const insight = profileInsight(draft);
+  return [
+    "Here is what I understood. This is not a government approval.",
+    `Startup: ${draft.name ?? `${draft.sector ?? "Untitled"} startup`}`,
+    `Sector: ${insight.targetSector ?? "not stated"}`,
+    `Technology: ${insight.technology ?? "not stated"}`,
+    `Location: ${[draft.city, draft.location].filter(Boolean).join(", ") || "not stated"}`,
+    `Stage: ${insight.targetStage ?? "not stated"}`,
+    `Funding sought: ${draft.fundingNeeded ? `Rs ${draft.fundingNeeded} lakh` : "not stated"}`,
+    `Purpose: ${insight.statedIntent ?? "not stated"}`,
+    `GST: ${insight.gstLabel ?? "not stated"}`,
+    `DPIIT: ${insight.dpiitLabel ?? "not stated"}`,
+    "Choose Confirm and analyze, or tell me what to correct.",
+  ].join("\n");
+}
+
+export function isConfirmation(text: string): boolean {
+  return /^(yes|yeah|yep|confirm|analyse|analyze|go ahead|looks good|that is right|that's right|correct)\b/i.test(text.trim());
 }
 
 export function toCreateProfile(draft: AdvisorDraft): CreateProfileInput {
@@ -173,6 +267,16 @@ export function mergeDraft(draft: AdvisorDraft, updates: Partial<Record<keyof Ad
   if (founders) next.founderCount = founders;
   const problem = cleanText(updates.problem);
   if (problem) next.problem = problem.slice(0, 280);
+  assignText(next, "city", updates.city, 80);
+  assignText(next, "technology", updates.technology, 80);
+  assignText(next, "fundingPurpose", updates.fundingPurpose, 160);
+  assignText(next, "entityType", updates.entityType, 80);
+  assignText(next, "subSector", updates.subSector, 80);
+  assignText(next, "businessModel", updates.businessModel, 40);
+  assignText(next, "incorporationStatus", updates.incorporationStatus, 40);
+  if (typeof updates.udyamRegistered === "boolean") next.udyamRegistered = updates.udyamRegistered;
+  if (typeof updates.hasRevenue === "boolean") next.hasRevenue = updates.hasRevenue;
+  if (typeof updates.gstApplicable === "boolean") next.gstApplicable = updates.gstApplicable;
   return next;
 }
 
@@ -204,9 +308,58 @@ export function extractFromText(text: string): DraftUpdates {
     updates.dpiitRegistration = !/\b(not yet|no|without|haven't|havent|do not|don't|dont)\b/.test(lower);
   }
   if (/gst/.test(lower)) {
-    if (/pending/.test(lower)) updates.gstStatus = "Pending";
-    else if (/\bno\b|not registered|without/.test(lower)) updates.gstStatus = "No";
+    if (/not required|not applicable|exempt/.test(lower)) {
+      updates.gstStatus = "No";
+      updates.gstApplicable = false;
+    } else if (/pending/.test(lower)) updates.gstStatus = "Pending";
+    else if (/\bno\b|not registered|without|haven't|havent/.test(lower)) updates.gstStatus = "No";
     else updates.gstStatus = "Registered";
+  }
+  if (/\b[0-9]{2}[a-z]{5}[0-9]{4}[a-z][a-z0-9]z[a-z0-9]\b/i.test(text)) {
+    updates.gstStatus = "Registered";
+  }
+
+  if (/udyam|msme registration/.test(lower)) {
+    updates.udyamRegistered = !/\b(no|not|without|haven't|havent)\b/.test(lower);
+  }
+  if (/no revenue|haven't made|havent made|pre-revenue|not making revenue|no sales yet/.test(lower)) updates.hasRevenue = false;
+  else if (/we have revenue|monthly revenue|annual revenue|paying customers/.test(lower)) updates.hasRevenue = true;
+
+  if (/private limited|pvt\.? ltd/.test(lower)) updates.entityType = "Private Limited Company";
+  else if (/\bllp\b/.test(lower)) updates.entityType = "LLP";
+  else if (/proprietorship/.test(lower)) updates.entityType = "Sole Proprietorship";
+  else if (/partnership/.test(lower)) updates.entityType = "Partnership";
+
+  if (/not incorporated|yet to incorporate|not registered as a company/.test(lower)) updates.incorporationStatus = "Not incorporated";
+  else if (/incorporated|private limited|pvt\.? ltd|\bllp\b/.test(lower)) updates.incorporationStatus = "Incorporated";
+  if (/incorporated last year/.test(lower)) updates.incorporationDate = `${new Date().getFullYear() - 1}-01-01`;
+
+  const purposes: string[] = [];
+  if (/pilot/.test(lower)) purposes.push("Pilot");
+  if (/hiring|hire /.test(lower)) purposes.push("Hiring");
+  if (/product development|build the product|building the product/.test(lower)) purposes.push("Product development");
+  if (/expand|expansion/.test(lower)) purposes.push("Expansion");
+  if (/equipment|machinery/.test(lower)) purposes.push("Equipment");
+  if (/marketing/.test(lower)) purposes.push("Marketing");
+  if (/working capital/.test(lower)) purposes.push("Working capital");
+  if (purposes.length) updates.fundingPurpose = purposes.join(", ");
+
+  const technologies: string[] = [];
+  if (/\bai\b|artificial intelligence|machine learning/.test(lower)) technologies.push("AI");
+  if (/\biot\b|internet of things/.test(lower)) technologies.push("IoT");
+  if (/blockchain/.test(lower)) technologies.push("Blockchain");
+  if (/drone/.test(lower)) technologies.push("Drones");
+  if (technologies.length) updates.technology = technologies.join(", ");
+  if (/farmer/.test(lower)) updates.subSector = "Small farmers";
+  if (/\bb2b\b/.test(lower)) updates.businessModel = "B2B";
+  else if (/\bb2c\b/.test(lower)) updates.businessModel = "B2C";
+  else if (/\bb2g\b/.test(lower)) updates.businessModel = "B2G";
+
+  for (const city of Object.keys(CITY_TO_LOCATION)) {
+    if (lower.includes(city)) {
+      updates.city = city.replace(/\b\w/g, (letter) => letter.toUpperCase());
+      break;
+    }
   }
 
   const year = lower.match(/(?:incorporated|founded|started)\s+(?:in\s+)?(20\d{2})/);
@@ -228,6 +381,34 @@ export function readShortDpiitAnswer(text: string): boolean | null {
   if (/^(yes|yeah|yep|we do|we have|recognised|recognized)\b/.test(lower)) return true;
   if (/^(no|nope|not yet|not really|we don't|we dont|haven't|havent)\b/.test(lower)) return false;
   return null;
+}
+
+function assignText(draft: AdvisorDraft, key: "city" | "technology" | "fundingPurpose" | "entityType" | "subSector" | "businessModel" | "incorporationStatus" | "fundingSource", value: unknown, max: number): void {
+  const text = cleanText(value);
+  if (text) draft[key] = text.slice(0, max);
+}
+
+function labelGst(draft: AdvisorDraft): string | null {
+  if (draft.gstApplicable === false) return "Not required";
+  if (draft.gstStatus === "Registered") return "Registered";
+  if (draft.gstStatus === "Pending") return "Pending";
+  if (draft.gstStatus === "No") return "Not registered";
+  return null;
+}
+
+function completenessScore(draft: AdvisorDraft): number {
+  const checks: Array<[boolean, number]> = [
+    [Boolean(draft.sector), 15],
+    [Boolean(draft.stage), 15],
+    [Boolean(draft.location), 10],
+    [Boolean(draft.fundingNeeded), 15],
+    [draft.dpiitRegistration !== null || draft.gstStatus !== null, 15],
+    [Boolean(draft.incorporationStatus || draft.incorporationDate || draft.entityType), 10],
+    [Boolean(draft.fundingPurpose || draft.problem), 10],
+    [Boolean(draft.technology), 5],
+    [Boolean(draft.founderCount), 5],
+  ];
+  return checks.reduce((total, [present, weight]) => total + (present ? weight : 0), 0);
 }
 
 function locationFromText(lower: string): ProfileLocation | null {

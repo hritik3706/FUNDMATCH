@@ -9,9 +9,13 @@ import {
   AdvisorDraft,
   DraftUpdates,
   emptyDraft,
+  confirmationMessage,
   extractFromText,
+  isConfirmation,
   materialKey,
   mergeDraft,
+  profileInsight,
+  ProfileInsight,
   questionFor,
   readShortDpiitAnswer,
   requiredMissing,
@@ -34,6 +38,8 @@ type Conversation = {
   matches: SchemeMatch[] | null;
   analyzedKey: string | null;
   askedDpiit: boolean;
+  awaitingConfirm: boolean;
+  confirmed: boolean;
   updatedAt: number;
 };
 
@@ -53,7 +59,8 @@ export type ChatResult = {
   profile: AdvisorDraft;
   missingFields: string[];
   profileComplete: boolean;
-  intent: "profile_building" | "analyze" | "results" | "follow_up";
+  intent: "profile_building" | "confirm" | "analyze" | "results" | "follow_up";
+  insight: ProfileInsight;
   analysis: ChatAnalysis | null;
   savedProfile: Profile | null;
   advisorMode: "gemini" | "rules";
@@ -117,6 +124,18 @@ export async function handleAdvisorTurn(conversationId: string | undefined, mess
     conversation.draft.dpiitRegistration = shortDpiit;
   }
 
+  if (/correct the profile|edit profile/i.test(message)) {
+    conversation.awaitingConfirm = true;
+    conversation.phase = "PROFILE_BUILDING";
+    return finish(
+      conversation,
+      "Tell me what to change. You can correct the sector, location, stage, funding amount, GST status, or DPIIT recognition.",
+      "profile_building",
+      extracted.mode,
+      null,
+    );
+  }
+
   const missing = requiredMissing(conversation.draft);
   if (missing.length) {
     conversation.phase = conversation.messages.length <= 2 ? "DISCOVERY" : "PROFILE_BUILDING";
@@ -136,6 +155,19 @@ export async function handleAdvisorTurn(conversationId: string | undefined, mess
   }
 
   const key = materialKey(conversation.draft);
+  if (conversation.analyzedKey && conversation.analyzedKey !== key) {
+    conversation.confirmed = false;
+  }
+  if (!conversation.confirmed) {
+    if (conversation.awaitingConfirm && isConfirmation(message)) {
+      conversation.confirmed = true;
+    } else {
+      conversation.awaitingConfirm = true;
+      conversation.phase = "PROFILE_READY";
+      return finish(conversation, confirmationMessage(conversation.draft), "confirm", extracted.mode, null);
+    }
+  }
+
   if (conversation.matches && conversation.analyzedKey === key) {
     conversation.phase = "FOLLOW_UP";
     const answer = await answerFollowUp(conversation, message, extracted.mode);
@@ -157,8 +189,8 @@ async function readUpdates(
 ): Promise<{ rules: DraftUpdates; geminiUpdates?: Partial<Record<keyof AdvisorDraft, unknown>>; mode: "gemini" | "rules"; geminiMessage?: string }> {
   const rules = extractFromText(message);
   try {
-    const history = conversation.messages.slice(-6).map((item) => `${item.role}: ${item.text}`);
-    const raw = await completeJson(buildExtractionPrompt(conversation.draft, history, message), 700);
+    const history = conversation.messages.slice(-6).map((item) => `${item.role}: ${redactIdentifiers(item.text)}`);
+    const raw = await completeJson(buildExtractionPrompt(conversation.draft, history, redactIdentifiers(message)), 700);
     const parsed = extractionSchema.parse(parseModelJson(raw));
     return {
       rules,
@@ -256,6 +288,7 @@ function finish(
     missingFields: missing,
     profileComplete: missing.length === 0,
     intent,
+    insight: profileInsight(conversation.draft),
     analysis,
     savedProfile: conversation.savedProfile,
     advisorMode: mode,
@@ -301,6 +334,13 @@ function mentionsUnknownScheme(message: string, allowed: string[]): boolean {
   return !allowed.some((name) => lower.includes(name.toLowerCase()));
 }
 
+function redactIdentifiers(text: string): string {
+  return text
+    .replace(/\b[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][A-Z0-9]Z[A-Z0-9]\b/gi, "[GST status provided]")
+    .replace(/\b[A-Z]{5}[0-9]{4}[A-Z]\b/g, "[tax id provided]")
+    .replace(/\b[UL][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}\b/g, "[company id provided]");
+}
+
 function usableQuestion(message: string | undefined): string | null {
   if (!message) return null;
   const text = message.trim();
@@ -326,6 +366,8 @@ function loadConversation(conversationId: string | undefined): Conversation {
     matches: null,
     analyzedKey: null,
     askedDpiit: false,
+    awaitingConfirm: false,
+    confirmed: false,
     updatedAt: Date.now(),
   };
   conversations.set(created.id, created);
