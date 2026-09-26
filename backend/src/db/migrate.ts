@@ -42,6 +42,9 @@ async function main(): Promise<void> {
       `SELECT to_regclass('public.profiles') IS NOT NULL AS exists`,
     );
     if (existing.rows[0]?.exists && !reset) {
+      await client.query(
+        "ALTER TABLE profiles ADD COLUMN IF NOT EXISTS website_url VARCHAR(500)",
+      );
       console.log("Schema already exists. Re-run with --reset to drop and reseed.");
       return;
     }

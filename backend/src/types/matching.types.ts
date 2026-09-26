@@ -27,6 +27,7 @@ export type ScoreBreakdown = {
   locationMatch: number;
   fundingRangeMatch: number;
   eligibilityCompleteness: number;
+  ideaMatch?: number;
 };
 
 export type ComponentScores = {
@@ -48,6 +49,7 @@ export type SchemeMatch = {
   overallReasoning: string;
   nextSteps: string[];
   scoreBreakdown: ScoreBreakdown;
+  websiteIdea?: string;
   fallbackMode?: boolean;
   fallbackReason?: string;
   accuracyNote?: string;

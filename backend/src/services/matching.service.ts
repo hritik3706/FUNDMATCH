@@ -13,6 +13,8 @@ import { toScoreBreakdown } from "./scoring/breakdown";
 import { determineEligibility } from "./scoring/eligibility";
 import { componentScores, formulaScore } from "./scoring/formula";
 import { detectGaps } from "./scoring/gaps";
+import { ideaScore } from "./scoring/idea";
+import { readStartupSite } from "./website/readStartupSite";
 
 type ClaudeMatchJson = {
   compatibilityScore?: number;
@@ -29,8 +31,15 @@ function clampScore(value: number): number {
   return Math.round(Math.max(0, Math.min(100, value)));
 }
 
-async function matchWithClaude(profile: Profile, scheme: Scheme): Promise<SchemeMatch> {
-  const raw = await completeJson(buildMatchingPrompt(profile, scheme), 1800);
+function blendWithIdea(baseScore: number, siteIdea: number | undefined): number {
+  if (siteIdea === undefined) {
+    return baseScore;
+  }
+  return clampScore(baseScore * 0.8 + siteIdea * 20);
+}
+
+async function matchWithClaude(profile: Profile, scheme: Scheme, ideaText?: string): Promise<SchemeMatch> {
+  const raw = await completeJson(buildMatchingPrompt(profile, scheme, ideaText), 1800);
   const parsed = parseModelJson<ClaudeMatchJson>(raw);
   const gaps = (parsed.missingRequirements?.length
     ? parsed.missingRequirements
@@ -44,8 +53,12 @@ async function matchWithClaude(profile: Profile, scheme: Scheme): Promise<Scheme
     type: gap.type,
   }));
   const components = componentScores(profile, scheme);
-  const compatibilityScore = clampScore(parsed.compatibilityScore ?? formulaScore(components));
-  const fallback = buildFallbackMatch(profile, scheme);
+  const siteIdea = ideaText?.trim() ? ideaScore(ideaText, scheme) : undefined;
+  const compatibilityScore = blendWithIdea(
+    clampScore(parsed.compatibilityScore ?? formulaScore(components)),
+    siteIdea,
+  );
+  const fallback = buildFallbackMatch(profile, scheme, ideaText);
 
   return {
     profileId: profile.id,
@@ -57,11 +70,12 @@ async function matchWithClaude(profile: Profile, scheme: Scheme): Promise<Scheme
     missingRequirements: gaps,
     overallReasoning: parsed.overallReasoning ?? fallback.overallReasoning,
     nextSteps: parsed.nextSteps?.length ? parsed.nextSteps : fallback.nextSteps,
-    scoreBreakdown: toScoreBreakdown(components),
+    scoreBreakdown: toScoreBreakdown(components, siteIdea),
+    websiteIdea: ideaText?.trim() ? ideaText.trim().slice(0, 500) : undefined,
   };
 }
 
-async function matchOne(profile: Profile, scheme: Scheme): Promise<SchemeMatch> {
+async function matchOne(profile: Profile, scheme: Scheme, ideaText?: string): Promise<SchemeMatch> {
   const key = matchCacheKey(profile.id, scheme.id);
   const cached = cacheGet<SchemeMatch>(key);
   if (cached) {
@@ -76,12 +90,12 @@ async function matchOne(profile: Profile, scheme: Scheme): Promise<SchemeMatch> 
 
   let match: SchemeMatch;
   try {
-    match = await matchWithClaude(profile, scheme);
+    match = await matchWithClaude(profile, scheme, ideaText);
   } catch (error) {
     if (error instanceof ClaudeUnavailableError) {
-      match = buildFallbackMatch(profile, scheme);
+      match = buildFallbackMatch(profile, scheme, ideaText);
     } else {
-      match = buildFallbackMatch(profile, scheme);
+      match = buildFallbackMatch(profile, scheme, ideaText);
     }
   }
 
@@ -102,12 +116,13 @@ export async function analyzeProfile(profileId: string): Promise<{
     throw new HttpError(404, "Resource not found", undefined, `Profile with ID ${profileId} not found`);
   }
 
+  const idea = profile.websiteUrl ? await readStartupSite(profile.websiteUrl) : null;
   const summaries = await listSchemes();
   const schemes = (
     await Promise.all(summaries.map((summary) => findSchemeById(summary.id)))
   ).filter((scheme): scheme is Scheme => scheme !== null);
 
-  const matches = await Promise.all(schemes.map((scheme) => matchOne(profile, scheme)));
+  const matches = await Promise.all(schemes.map((scheme) => matchOne(profile, scheme, idea?.text)));
   matches.sort((left, right) => right.compatibilityScore - left.compatibilityScore);
 
   return {
@@ -127,5 +142,6 @@ export async function getMatchDetail(profileId: string, schemeId: string): Promi
   if (!scheme) {
     throw new HttpError(404, "Resource not found", undefined, "Scheme not found");
   }
-  return matchOne(profile, scheme);
+  const idea = profile.websiteUrl ? await readStartupSite(profile.websiteUrl) : null;
+  return matchOne(profile, scheme, idea?.text);
 }
