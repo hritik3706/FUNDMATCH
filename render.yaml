@@ -3,15 +3,19 @@ databases:
     databaseName: fundmatch_ai
     user: fundmatch
     plan: free
+    region: oregon
 
 services:
   - type: web
     name: fundmatch-api
     runtime: node
+    region: oregon
+    branch: main
     rootDir: backend
     plan: free
     buildCommand: npm install --include=dev && npm run build
-    startCommand: npm start
+    preDeployCommand: node dist/db/migrate.js
+    startCommand: node dist/index.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -23,11 +27,16 @@ services:
       - key: GEMINI_MODEL
         value: gemini-3.5-flash-lite
       - key: FRONTEND_URL
-        value: https://fundmatch-web.onrender.com
+        fromService:
+          name: fundmatch-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: fundmatch-web
     runtime: node
+    region: oregon
+    branch: main
     rootDir: frontend
     plan: free
     buildCommand: npm install && npm run build
