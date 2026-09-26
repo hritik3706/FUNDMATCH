@@ -1,13 +1,24 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/components/session-provider";
-import { Button, SelectField, TextField } from "@/components/ui";
+import { Button, Icon, SelectField, TextField } from "@/components/ui";
+import { readJson, writeJson } from "@/lib/storage";
 import { addNotification } from "@/services/accountService";
 import { createProfile } from "@/services/profileService";
 import { extractStory, inrToLakhs, storedToInr } from "@/lib/extractStory";
 import { FOUNDER_EXPERIENCE, GST_STATUSES, PROFILE_LOCATIONS, SECTORS, STAGES, type CreateProfileInput, type Profile, type ProfileLocation, type Sector, type Stage } from "@/lib/types";
+
+const DOCUMENTS_KEY = "ps41.documents";
+
+type DocumentSlot = { id: string; name: string };
+
+function websiteOrUndefined(value: string | undefined) {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed || /^https?:\/\/$/i.test(trimmed)) return undefined;
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
 
 export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial?: Profile | null; submitLabel?: string }) {
   const router = useRouter();
@@ -17,6 +28,7 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState(extracted.product || story.subSector);
+  const [documents, setDocuments] = useState<DocumentSlot[]>([{ id: "document-1", name: "" }]);
   const [form, setForm] = useState<CreateProfileInput>({
     name: extracted.name || initial?.name || "",
     sector: (extracted.sector || initial?.sector || "") as CreateProfileInput["sector"],
@@ -30,6 +42,11 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
     previousFunding: extracted.previousFundingInr || (fromStory ? 0 : storedToInr(initial?.previousFunding)),
     websiteUrl: initial?.websiteUrl ?? "",
   });
+
+  useEffect(() => {
+    const saved = readJson<DocumentSlot[]>(DOCUMENTS_KEY, []);
+    if (saved.length > 0) setDocuments(saved);
+  }, []);
 
   function set<K extends keyof CreateProfileInput>(key: K, value: CreateProfileInput[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -54,12 +71,13 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
         previousFunding: form.previousFunding ? inrToLakhs(form.previousFunding) : undefined,
         incorporationDate: form.incorporationDate || undefined,
         gstStatus: form.gstStatus || undefined,
-        websiteUrl: form.websiteUrl?.trim() || undefined,
+        websiteUrl: websiteOrUndefined(form.websiteUrl),
       };
+      writeJson(DOCUMENTS_KEY, documents);
       saveStory({
         ...story,
         text: story.text,
-        futureIntent: "",
+        futureIntent: story.futureIntent,
         subSector: product,
         targetSector: form.sector,
         targetStage: form.stage,
@@ -114,6 +132,37 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
         <input type="checkbox" checked={Boolean(form.dpiitRegistration)} onChange={(event) => set("dpiitRegistration", event.target.checked)} />
         DPIIT recognition
       </label>
+      <div className="md:col-span-2">
+        <span className="mb-2 block font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">Documents</span>
+        <div className="space-y-2">
+          {documents.map((slot, index) => (
+            <div key={slot.id} className="flex items-center gap-2">
+              <label className="flex h-[42px] flex-1 cursor-pointer items-center rounded border border-outline-variant bg-surface-container-lowest px-3 font-body-md text-body-md">
+                <span className={slot.name ? "text-on-surface" : "text-on-surface-variant"}>{slot.name || "Attach document"}</span>
+                <input
+                  type="file"
+                  className="sr-only"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    setDocuments((current) => current.map((item) => (item.id === slot.id ? { ...item, name: file.name } : item)));
+                  }}
+                />
+              </label>
+              {index === 0 ? (
+                <button
+                  type="button"
+                  aria-label="Add another document"
+                  onClick={() => setDocuments((current) => [...current, { id: crypto.randomUUID(), name: "" }])}
+                  className="inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded border border-outline-variant bg-surface-container-lowest text-primary hover:bg-surface-container-low"
+                >
+                  <Icon name="add" className="text-[18px]" />
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
       {error ? <p className="md:col-span-2 font-body-sm text-body-sm text-error" role="alert">{error}</p> : null}
       <div className="md:col-span-2">
         <Button type="submit" disabled={loading}>{loading ? "Saving" : submitLabel}</Button>

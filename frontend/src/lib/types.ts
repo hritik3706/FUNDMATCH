@@ -135,7 +135,12 @@ export type BackendEligibilityStatus =
   | "FULLY_ELIGIBLE"
   | "PARTIALLY_ELIGIBLE"
   | "UNLIKELY_ELIGIBLE"
-  | "NOT_ELIGIBLE";
+  | "NOT_ELIGIBLE"
+  | "INSUFFICIENT_INFORMATION";
+
+export type RequirementState = "satisfied" | "missing" | "unknown" | "not_satisfied";
+
+export type MatchRelevance = "now" | "potential" | "future";
 
 export type DisplayEligibility =
   | "ELIGIBLE"
@@ -168,6 +173,14 @@ export type SchemeMatch = {
     ideaMatch?: number;
   };
   websiteIdea?: string;
+  requirementChecks?: {
+    name: string;
+    required: boolean;
+    state: RequirementState;
+    detail: string;
+  }[];
+  factorNotes?: string[];
+  relevance?: MatchRelevance;
   fallbackMode?: boolean;
   fallbackReason?: string;
 };

@@ -29,6 +29,10 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "FundMatch — Startup Scheme & Funding Agent",
   description: "Find the right government schemes for your startup.",
+  icons: {
+    icon: "/fundmatch-mark.png",
+    apple: "/fundmatch-mark.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

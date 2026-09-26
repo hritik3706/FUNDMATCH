@@ -13,6 +13,8 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional().default(""),
   GEMINI_MODEL: z.string().optional().default("gemini-3.5-flash-lite"),
   FRONTEND_URL: z.string().optional().default(""),
+  FIRECRAWL_API_KEY: z.string().optional().default(""),
+  MATCH_THRESHOLD: z.coerce.number().min(0).max(100).default(40),
 });
 
 const parsed = envSchema.safeParse(process.env);

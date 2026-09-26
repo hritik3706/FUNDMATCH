@@ -20,6 +20,36 @@ function termsFor(sectors: string[]): string[] {
   return sectors.flatMap((sector) => SECTOR_TERMS[sector] ?? [sector.toLowerCase()]);
 }
 
+export function inferSector(text: string): string | null {
+  const idea = normalize(text);
+  if (!idea) {
+    return null;
+  }
+
+  let best: { sector: string; hits: number } | null = null;
+  let tie = false;
+  for (const [sector, terms] of Object.entries(SECTOR_TERMS)) {
+    if (sector === "Other") {
+      continue;
+    }
+    const hits = terms.filter((term) => idea.includes(term)).length;
+    if (hits < 2) {
+      continue;
+    }
+    if (!best || hits > best.hits) {
+      best = { sector, hits };
+      tie = false;
+    } else if (hits === best.hits) {
+      tie = true;
+    }
+  }
+
+  if (!best || tie) {
+    return null;
+  }
+  return best.sector;
+}
+
 export function ideaScore(ideaText: string, scheme: Scheme): number {
   const idea = normalize(ideaText);
   if (!idea) {

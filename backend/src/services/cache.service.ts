@@ -3,8 +3,8 @@ const store = new Map<string, { value: unknown; expiresAt: number }>();
 const MATCH_TTL_MS = 60 * 60 * 1000;
 const ACTION_PLAN_TTL_MS = 4 * 60 * 60 * 1000;
 
-export function matchCacheKey(profileId: string, schemeId: string): string {
-  return `matches:${profileId}:${schemeId}`;
+export function matchCacheKey(profileId: string, schemeId: string, contextHash = ""): string {
+  return `matches:${profileId}:${schemeId}:${contextHash}`;
 }
 
 export function actionPlanCacheKey(profileId: string, schemeId: string): string {

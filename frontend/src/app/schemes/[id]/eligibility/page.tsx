@@ -9,11 +9,11 @@ import { Button, PageHeader, Panel, StateMessage, StatusBadge } from "@/componen
 import { downloadEvaluationPdf } from "@/lib/evaluationPdf";
 import { displayStatus } from "@/lib/format";
 import type { SchemeMatch } from "@/lib/types";
-import { analyzeProfile, getMatch } from "@/services/matchService";
+import { analyzeProfile, getMatch, matchContext } from "@/services/matchService";
 
 export default function EligibilityPage() {
   const params = useParams<{ id: string }>();
-  const { profile } = useSession();
+  const { profile, story } = useSession();
   const [match, setMatch] = useState<SchemeMatch | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,13 +24,13 @@ export default function EligibilityPage() {
     setError("");
     try {
       try {
-        const existing = await getMatch(profile.id, params.id);
+        const existing = await getMatch(profile.id, params.id, matchContext(story));
         setMatch(existing.match);
       } catch {
-        const analyzed = await analyzeProfile(profile.id);
+        const analyzed = await analyzeProfile(profile.id, matchContext(story));
         const found = analyzed.matches.find((item) => item.schemeId === params.id) ?? null;
         setMatch(found);
-        if (!found) setError("This scheme was not included in the match result.");
+        if (!found) setError("This scheme is below the relevance threshold for the current profile.");
       }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Eligibility could not be loaded.");
@@ -42,7 +42,7 @@ export default function EligibilityPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.id, params.id]);
+  }, [profile?.id, params.id, story.text, story.futureIntent]);
 
   const status = displayStatus(match?.eligibilityStatus ?? null);
 
@@ -57,7 +57,7 @@ export default function EligibilityPage() {
           <Panel>
             <StatusBadge status={status} />
             <p className="mt-4 font-body-md text-body-md text-on-surface">{match.overallReasoning}</p>
-            <p className="mt-2 font-data-mono text-data-mono text-on-surface-variant">Score {match.compatibilityScore}</p>
+            <p className="mt-2 font-data-mono text-sm font-bold text-primary">{match.compatibilityScore}% Match</p>
           </Panel>
           <Panel>
             <h2 className="font-headline-sm text-headline-sm text-primary">Requirements satisfied</h2>

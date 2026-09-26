@@ -10,6 +10,14 @@ const RELATED_SECTORS: Record<string, string[]> = {
   Other: [],
 };
 
+export function isSectorConflict(formSector: string, otherSector: string): boolean {
+  if (same(formSector, otherSector)) {
+    return false;
+  }
+  const related = RELATED_SECTORS[formSector] ?? [];
+  return !related.some((sector) => same(sector, otherSector));
+}
+
 function same(left: string, right: string): boolean {
   return left.trim().toLowerCase() === right.trim().toLowerCase();
 }
