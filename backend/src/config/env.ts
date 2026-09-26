@@ -9,6 +9,9 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   CLAUDE_API_KEY: z.string().optional().default(""),
+  CLAUDE_MODEL: z.string().optional().default("claude-sonnet-4-6"),
+  GEMINI_API_KEY: z.string().optional().default(""),
+  GEMINI_MODEL: z.string().optional().default("gemini-3.5-flash-lite"),
   FRONTEND_URL: z.string().optional().default(""),
 });
 

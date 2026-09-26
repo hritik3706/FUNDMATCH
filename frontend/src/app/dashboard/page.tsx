@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { DashboardSchemeCard } from "@/components/dashboard-scheme-card";
 import { useSession } from "@/components/session-provider";
-import { Button, PageHeader, Panel, StateMessage, StatusBadge } from "@/components/ui";
-import { displayStatus, inr } from "@/lib/format";
-import type { SchemeMatch } from "@/lib/types";
+import { Button, PageHeader, Panel, StateMessage } from "@/components/ui";
+import { inr } from "@/lib/format";
+import type { SchemeMatch, SchemeSummary } from "@/lib/types";
+import { savedSchemeIds, toggleSaved } from "@/services/accountService";
 import { analyzeProfile } from "@/services/matchService";
+import { listSchemes } from "@/services/schemeService";
 
 export default function DashboardPage() {
   const { profile } = useSession();
   const [matches, setMatches] = useState<SchemeMatch[]>([]);
+  const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -20,10 +25,17 @@ export default function DashboardPage() {
     if (!profile) return;
     setLoading(true);
     setError("");
+    setSavedIds(savedSchemeIds());
     analyzeProfile(profile.id)
-      .then((result) => {
+      .then(async (result) => {
         setMatches(result.matches);
         setNotice(result.fallbackReason ?? "");
+        try {
+          const catalogue = await listSchemes();
+          setSchemes(catalogue.schemes);
+        } catch {
+          setSchemes([]);
+        }
       })
       .catch((reason: Error) => setError(reason.message))
       .finally(() => setLoading(false));
@@ -56,19 +68,15 @@ export default function DashboardPage() {
           {matches.length === 0 ? (
             <StateMessage title="No matches returned" body="The API did not return schemes for this profile." />
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {matches.map((match) => (
-                <Panel key={match.schemeId} className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <h2 className="font-headline-sm text-headline-sm text-primary">{match.schemeName}</h2>
-                    <p className="mt-1 font-body-sm text-body-sm text-on-surface-variant">{match.overallReasoning}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <StatusBadge status={displayStatus(match.eligibilityStatus)} />
-                    <span className="font-data-mono text-data-mono text-primary">{match.compatibilityScore}</span>
-                    <Link href={`/schemes/${match.schemeId}`} className="font-label-lg text-label-lg text-secondary hover:underline">Open</Link>
-                  </div>
-                </Panel>
+                <DashboardSchemeCard
+                  key={match.schemeId}
+                  match={match}
+                  scheme={schemes.find((scheme) => scheme.id === match.schemeId)}
+                  saved={savedIds.includes(match.schemeId)}
+                  onToggleSave={(schemeId) => setSavedIds(toggleSaved(schemeId))}
+                />
               ))}
             </div>
           )}

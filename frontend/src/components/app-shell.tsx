@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { NotificationBell } from "@/components/notification-bell";
 import { Brand } from "@/components/public-shell";
 import { Icon } from "@/components/ui";
 import { useSession } from "@/components/session-provider";
@@ -21,7 +22,13 @@ const links = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, signOut } = useSession();
+
+  function onSignOut() {
+    signOut();
+    router.push("/login");
+  }
 
   return (
     <div className="min-h-screen bg-surface md:grid md:grid-cols-[260px_1fr]">
@@ -52,16 +59,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
       <div className="min-w-0">
-        <header className="flex h-16 items-center justify-between border-b border-[#e2e8f0] bg-surface-container-lowest px-4 md:px-8">
+        <header className="relative z-30 flex h-16 items-center justify-between border-b border-[#e2e8f0] bg-surface-container-lowest px-4 md:px-8">
           <p className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
             {user ? user.name : "Guest session"}
           </p>
           <div className="flex items-center gap-3">
-            <Link href="/notifications" className="text-on-surface-variant" aria-label="Notifications">
-              <Icon name="notifications" />
-            </Link>
+            <NotificationBell />
             {user ? (
-              <button type="button" onClick={signOut} className="font-label-lg text-label-lg text-secondary">
+              <button type="button" onClick={onSignOut} className="font-label-lg text-label-lg text-secondary">
                 Sign out
               </button>
             ) : (

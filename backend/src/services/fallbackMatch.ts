@@ -37,13 +37,18 @@ function metCriteria(profile: Profile, scheme: Scheme): MatchedCriterion[] {
     met.push({
       name: "Funding Range",
       status: "met",
-      explanation: `₹${profile.fundingNeeded}L is inside ₹${scheme.fundingMin}L-₹${scheme.fundingMax}L`,
+      explanation: `Rs ${profile.fundingNeeded}L is inside Rs ${scheme.fundingMin}L-Rs ${scheme.fundingMax}L`,
     });
   }
   return met;
 }
 
-export function buildFallbackMatch(profile: Profile, scheme: Scheme, ideaText?: string): SchemeMatch {
+export function buildFallbackMatch(
+  profile: Profile,
+  scheme: Scheme,
+  ideaText?: string,
+  reason = FALLBACK_REASON,
+): SchemeMatch {
   const gaps = detectGaps(profile, scheme.eligibilityCriteria);
   const components = componentScores(profile, scheme);
   const siteIdea = ideaText?.trim() ? ideaScore(ideaText, scheme) : undefined;
@@ -69,7 +74,7 @@ export function buildFallbackMatch(profile: Profile, scheme: Scheme, ideaText?: 
     scoreBreakdown: toScoreBreakdown(components, siteIdea),
     websiteIdea: ideaText?.trim() ? ideaText.trim().slice(0, 500) : undefined,
     fallbackMode: true,
-    fallbackReason: FALLBACK_REASON,
+    fallbackReason: reason,
     accuracyNote: "Full eligibility analysis unavailable. Please try again in a few minutes.",
   };
 }

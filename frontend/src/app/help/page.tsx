@@ -21,7 +21,7 @@ export default function HelpPage() {
 
   return (
     <AppShell>
-      <PageHeader eyebrow="Help" title="How PS41 works" description="Answers describe the behaviour of this frontend and the current API." />
+      <PageHeader eyebrow="Help" title="How FundMatch works" description="Answers describe the behaviour of this frontend and the current API." />
       <div className="mb-6 max-w-xl">
         <TextField label="Search help" name="help" value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>

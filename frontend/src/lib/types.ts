@@ -106,6 +106,10 @@ export type SchemeSummary = {
   fundingMax: number;
   sourceUrl: string | null;
   schemeType: string | null;
+  ministry?: string | null;
+  department?: string | null;
+  benefit?: string | null;
+  applicationDeadline?: string | null;
 };
 
 export type Scheme = SchemeSummary & {
