@@ -13,6 +13,7 @@ type ProfileRow = {
   gst_status: Profile["gstStatus"];
   dpiit_registration: boolean;
   previous_funding: number;
+  website_url: string | null;
   created_at: Date;
 };
 
@@ -28,6 +29,7 @@ const PROFILE_COLUMNS = `
   gst_status,
   dpiit_registration,
   previous_funding,
+  website_url,
   created_at
 `;
 
@@ -55,8 +57,9 @@ export async function insertProfile(input: CreateProfileInput): Promise<Profile>
       incorporation_date,
       gst_status,
       dpiit_registration,
-      previous_funding
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      previous_funding,
+      website_url
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING ${PROFILE_COLUMNS}`,
     [
       input.name,
@@ -69,6 +72,7 @@ export async function insertProfile(input: CreateProfileInput): Promise<Profile>
       input.gstStatus ?? null,
       input.dpiitRegistration ?? false,
       input.previousFunding ?? 0,
+      input.websiteUrl ?? null,
     ],
   );
 
@@ -88,6 +92,7 @@ function toProfile(row: ProfileRow): Profile {
     gstStatus: row.gst_status,
     dpiitRegistration: row.dpiit_registration,
     previousFunding: row.previous_funding,
+    websiteUrl: row.website_url,
     createdAt: row.created_at.toISOString(),
   };
 }

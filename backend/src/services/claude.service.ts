@@ -1,3 +1,4 @@
+import { env } from "../config/env";
 import { ClaudeUnavailableError } from "../types/matching.types";
 
 type ClaudeMessageResponse = {
@@ -16,13 +17,57 @@ export function parseModelJson<T>(raw: string): T {
   }
 }
 
-export async function completeJson(prompt: string, maxTokens: number): Promise<string> {
-  const apiKey = process.env.CLAUDE_API_KEY;
-  if (!apiKey) {
-    throw new ClaudeUnavailableError("CLAUDE_API_KEY is not set");
+async function completeWithGemini(prompt: string, maxTokens: number): Promise<string> {
+  const model = env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: maxTokens,
+            responseMimeType: "application/json",
+          },
+        }),
+        signal: AbortSignal.timeout(25000),
+      },
+    );
+  } catch {
+    throw new ClaudeUnavailableError("Gemini API request failed");
   }
 
-  const model = process.env.CLAUDE_MODEL || "claude-sonnet-4-6";
+  if (!response.ok) {
+    throw new ClaudeUnavailableError(`Gemini API returned ${response.status}`);
+  }
+
+  const body = (await response.json()) as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  const text = body.candidates?.[0]?.content?.parts?.find((part) => part.text)?.text;
+  if (!text) {
+    throw new ClaudeUnavailableError("Gemini API returned an empty response");
+  }
+  return text;
+}
+
+export async function completeJson(prompt: string, maxTokens: number): Promise<string> {
+  if (env.GEMINI_API_KEY) {
+    return completeWithGemini(prompt, maxTokens);
+  }
+
+  const apiKey = env.CLAUDE_API_KEY;
+  if (!apiKey) {
+    throw new ClaudeUnavailableError("GEMINI_API_KEY is not set");
+  }
+
+  const model = env.CLAUDE_MODEL || "claude-sonnet-4-6";
   let response: Response;
   try {
     response = await fetch("https://api.anthropic.com/v1/messages", {

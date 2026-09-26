@@ -2,6 +2,7 @@ import { Profile } from "../types/profile.types";
 import { Scheme } from "../types/scheme.types";
 import { buildFallbackActionPlan } from "../services/fallbackActionPlan";
 import { buildFallbackMatch } from "../services/fallbackMatch";
+import { ideaScore } from "../services/scoring/idea";
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {
@@ -21,6 +22,7 @@ const highProfile: Profile = {
   gstStatus: "Registered",
   dpiitRegistration: true,
   previousFunding: 0,
+  websiteUrl: null,
   createdAt: "2026-09-26T00:00:00.000Z",
 };
 
@@ -128,6 +130,24 @@ const plan = buildFallbackActionPlan(partialProfile, scheme({
 }));
 assert(plan.steps.length >= 5 && plan.steps.length <= 10, `steps ${plan.steps.length}`);
 assert(plan.fallbackMode === true, "fallback flag missing");
+
+const edtechScheme = scheme({
+  id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  name: "Classroom Grant",
+  eligibleSectors: ["EdTech"],
+  eligibleStages: ["Seed"],
+  fundingMin: 10,
+  fundingMax: 50,
+  eligibilityCriteria: [gst],
+});
+const schoolIdea = "We build an online learning platform for school students and teachers with classroom courses.";
+const clinicIdea = "We run a hospital clinic for patient diagnostics and medical records.";
+const schoolFit = ideaScore(schoolIdea, edtechScheme);
+const clinicFit = ideaScore(clinicIdea, edtechScheme);
+assert(schoolFit > clinicFit, `school idea ${schoolFit} should beat clinic idea ${clinicFit}`);
+const withSite = buildFallbackMatch({ ...highProfile, websiteUrl: "https://example.com" }, edtechScheme, schoolIdea);
+assert(withSite.scoreBreakdown.ideaMatch !== undefined, "idea points missing");
+assert((withSite.websiteIdea ?? "").includes("learning"), "website idea was not stored");
 
 console.log(
   JSON.stringify(
