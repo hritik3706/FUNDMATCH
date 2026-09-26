@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui";
 import { useSession } from "@/components/session-provider";
 
 const links = [
+  { href: "/advisor", label: "Funding advisor", icon: "forum" },
   { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/schemes", label: "Scheme discovery", icon: "search" },
   { href: "/schemes/ministries", label: "Ministries", icon: "account_balance" },

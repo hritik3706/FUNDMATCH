@@ -27,6 +27,7 @@ export function PublicHeader() {
         </div>
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
           <a className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/#how-it-works">How it works</a>
+          <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/advisor">Advisor</Link>
           <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/schemes">Schemes</Link>
           <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/schemes/ministries">Ministries</Link>
           <Link className="font-body-md text-body-md text-on-surface hover:text-secondary" href="/help">About</Link>
@@ -57,6 +58,7 @@ export function PublicFooter() {
           <div>
             <h2 className="mb-4 font-label-lg text-label-lg font-bold text-primary">Explore</h2>
             <ul className="space-y-2.5 font-body-sm text-body-sm text-on-surface-variant">
+              <li><Link className="hover:text-primary" href="/advisor">Funding advisor</Link></li>
               <li><Link className="hover:text-primary" href="/schemes">Scheme directory</Link></li>
               <li><Link className="hover:text-primary" href="/schemes/ministries">Grouped catalogue</Link></li>
               <li><Link className="hover:text-primary" href="/help">How matching works</Link></li>

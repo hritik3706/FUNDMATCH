@@ -38,6 +38,9 @@ export default function LandingPage() {
                 Analyze my startup
                 <Icon name="arrow_forward" className="text-base" />
               </Link>
+              <Link href="/advisor" className="inline-flex items-center gap-2 rounded bg-secondary px-6 py-3.5 font-label-lg text-label-lg text-on-primary shadow-sm hover:bg-primary">
+                Talk to the advisor
+              </Link>
               <Link href="/schemes" className="inline-flex items-center gap-2 rounded bg-surface-container-lowest px-6 py-3.5 font-label-lg text-label-lg text-primary shadow-sm hover:bg-surface-container-low">
                 <Icon name="history_edu" className="text-base text-secondary" />
                 Explore the catalogue
