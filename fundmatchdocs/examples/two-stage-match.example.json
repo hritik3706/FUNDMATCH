@@ -1,0 +1,31 @@
+{
+  "stage_1_taxonomy_match": {
+    "jurisdiction": "STATE",
+    "region_id": "uuid-for-uttar-pradesh",
+    "intersected_nodes": [
+      {"node_type": "SECTOR", "code": "SEC_DEEPTECH"},
+      {"node_type": "STAGE", "code": "STG_EARLY_TRACTION"}
+    ]
+  },
+  "stage_2_application_match": {
+    "evaluated_fields": [
+      {
+        "field_key": "dpiit_recognized",
+        "application_value": true,
+        "scheme_required_value": true,
+        "operator": "EQUALS",
+        "match": true,
+        "evaluation_method": "DETERMINISTIC_CODE"
+      },
+      {
+        "field_key": "innovative_technology",
+        "application_value": "Patent filed for quantum encryption algorithm",
+        "scheme_required_value": "Must demonstrate IP generation",
+        "operator": "CONTAINS",
+        "match": true,
+        "evaluation_method": "LLM_EVIDENCE_BASED",
+        "evidence_clause_id": "uuid-for-qdrant-vector"
+      }
+    ]
+  }
+}
