@@ -1,5 +1,7 @@
 # FundMatch AI - Implementation Documentation Pack
 
+Start with [fundmatchdocs/00_BUILD_PLAN.md](fundmatchdocs/00_BUILD_PLAN.md). That plan catalogs every source file, records where the hackathon spec and the later PS-41 taxonomy design disagree, and locks the build order. Specs `01`–`05` are in the repo root. `06_UI_UX_SPEC.md` and `07_MASTER_BUILD_PROMPT.md` were not in the provided source set.
+
 ## Overview
 
 This folder contains **7 comprehensive markdown files** that completely specify the FundMatch AI hackathon project for AI coding agents (Cursor, Claude Code, Codex, etc.).
