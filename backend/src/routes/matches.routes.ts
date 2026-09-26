@@ -30,7 +30,9 @@ matchesRouter.post(
       ...(result.fallbackMode
         ? {
             fallbackMode: true,
-            fallbackReason: "Claude API temporarily unavailable. Using formula-based matching.",
+            fallbackReason:
+              result.fallbackReason ??
+              "Claude API temporarily unavailable. Using formula-based matching.",
           }
         : {}),
     });

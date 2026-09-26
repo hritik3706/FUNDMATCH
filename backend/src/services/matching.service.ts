@@ -1,3 +1,4 @@
+import { env } from "../config/env";
 import { findSchemeById, listSchemes } from "../repositories/scheme.repository";
 import { findStoredMatch, upsertMatch } from "../repositories/match.repository";
 import { findProfileById } from "../repositories/profile.repository";
@@ -92,11 +93,11 @@ async function matchOne(profile: Profile, scheme: Scheme, ideaText?: string): Pr
   try {
     match = await matchWithClaude(profile, scheme, ideaText);
   } catch (error) {
-    if (error instanceof ClaudeUnavailableError) {
-      match = buildFallbackMatch(profile, scheme, ideaText);
-    } else {
-      match = buildFallbackMatch(profile, scheme, ideaText);
-    }
+    const reason =
+      error instanceof ClaudeUnavailableError
+        ? error.message
+        : "Gemini API temporarily unavailable. Using formula-based matching.";
+    match = buildFallbackMatch(profile, scheme, ideaText, reason);
   }
 
   cacheSet(key, match, CACHE_TTL.matchMs);
@@ -109,6 +110,7 @@ export async function analyzeProfile(profileId: string): Promise<{
   processedSchemes: number;
   totalTime: number;
   fallbackMode: boolean;
+  fallbackReason?: string;
 }> {
   const started = Date.now();
   const profile = await findProfileById(profileId);
@@ -122,14 +124,49 @@ export async function analyzeProfile(profileId: string): Promise<{
     await Promise.all(summaries.map((summary) => findSchemeById(summary.id)))
   ).filter((scheme): scheme is Scheme => scheme !== null);
 
-  const matches = await Promise.all(schemes.map((scheme) => matchOne(profile, scheme, idea?.text)));
-  matches.sort((left, right) => right.compatibilityScore - left.compatibilityScore);
+  const missingKey = !env.GEMINI_API_KEY && !env.CLAUDE_API_KEY;
+  const ranked = schemes
+    .map((scheme) => {
+      const match = buildFallbackMatch(
+        profile,
+        scheme,
+        idea?.text,
+        missingKey ? "GEMINI_API_KEY is not set" : undefined,
+      );
+      if (!missingKey) {
+        match.fallbackMode = false;
+        match.fallbackReason = undefined;
+      }
+      return { scheme, match };
+    })
+    .sort((left, right) => right.match.compatibilityScore - left.match.compatibilityScore);
 
+  if (!missingKey) {
+    for (const row of ranked.slice(0, 3)) {
+      try {
+        row.match = await matchWithClaude(profile, row.scheme, idea?.text);
+      } catch (error) {
+        const reason =
+          error instanceof ClaudeUnavailableError
+            ? error.message
+            : "Gemini API temporarily unavailable. Using formula-based matching.";
+        row.match = buildFallbackMatch(profile, row.scheme, idea?.text, reason);
+      }
+    }
+  }
+
+  const ordered = ranked
+    .map((row) => row.match)
+    .sort((left, right) => right.compatibilityScore - left.compatibilityScore);
+  await Promise.all(ordered.map((match) => upsertMatch(match)));
+  const top = ordered.slice(0, 10);
+  const fallback = top.find((match) => match.fallbackMode);
   return {
-    matches: matches.slice(0, 10),
+    matches: top,
     processedSchemes: schemes.length,
     totalTime: Math.round(((Date.now() - started) / 1000) * 10) / 10,
-    fallbackMode: matches.some((match) => match.fallbackMode),
+    fallbackMode: Boolean(fallback),
+    fallbackReason: fallback?.fallbackReason,
   };
 }
 

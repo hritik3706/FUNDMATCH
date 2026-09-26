@@ -62,7 +62,7 @@ export function buildFallbackActionPlan(profile: Profile, scheme: Scheme): Actio
     {
       stepNumber: 6,
       title: "Submit the application",
-      description: `File the ${scheme.name} application for a ${profile.stage} ${profile.sector} startup seeking ₹${profile.fundingNeeded}L.`,
+      description: `File the ${scheme.name} application for a ${profile.stage} ${profile.sector} startup seeking Rs ${profile.fundingNeeded}L.`,
       priority: "critical",
       estimatedTime: "3 hours",
       requiredDocuments: ["Completed form", "Eligibility pack"],

@@ -12,6 +12,12 @@ type PlanRow = {
   expires_at: Date | null;
 };
 
+function storableJson(value: unknown): string {
+  return JSON.stringify(value).replace(/[^\u0000-\u00ff]/g, (char) =>
+    char === "\u20b9" ? "Rs " : "",
+  );
+}
+
 function stillValid(expiresAt: Date | null): boolean {
   if (!expiresAt) {
     return true;
@@ -48,7 +54,7 @@ export async function upsertMatch(match: SchemeMatch): Promise<void> {
       match.profileId,
       match.schemeId,
       match.compatibilityScore,
-      JSON.stringify(match),
+      storableJson(match),
       Boolean(match.fallbackMode),
     ],
   );
@@ -81,6 +87,6 @@ export async function upsertActionPlan(plan: ActionPlan): Promise<void> {
       action_data = EXCLUDED.action_data,
       total_estimated_time = EXCLUDED.total_estimated_time,
       expires_at = EXCLUDED.expires_at`,
-    [plan.profileId, plan.schemeId, JSON.stringify(plan), plan.totalEstimatedTime],
+    [plan.profileId, plan.schemeId, storableJson(plan), plan.totalEstimatedTime],
   );
 }
