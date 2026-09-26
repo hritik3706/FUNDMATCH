@@ -37,6 +37,6 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, "0.0.0.0", () => {
   console.log(`FundMatch API listening on port ${env.PORT}`);
 });

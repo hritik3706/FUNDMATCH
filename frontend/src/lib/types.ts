@@ -165,7 +165,9 @@ export type SchemeMatch = {
     locationMatch: number;
     fundingRangeMatch: number;
     eligibilityCompleteness: number;
+    ideaMatch?: number;
   };
+  websiteIdea?: string;
   fallbackMode?: boolean;
   fallbackReason?: string;
 };

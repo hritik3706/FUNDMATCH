@@ -4,7 +4,22 @@ import { Client } from "pg";
 import { env } from "../config/env";
 import { pool } from "../config/db";
 
+function pgSsl() {
+  return /render\.com|sslmode=require/i.test(env.DATABASE_URL)
+    ? { rejectUnauthorized: false as const }
+    : undefined;
+}
+
 async function ensureDatabase(): Promise<void> {
+  const probe = new Client({ connectionString: env.DATABASE_URL, ssl: pgSsl() });
+  try {
+    await probe.connect();
+    await probe.end();
+    return;
+  } catch {
+    await probe.end().catch(() => undefined);
+  }
+
   const url = new URL(env.DATABASE_URL);
   const dbName = decodeURIComponent(url.pathname.replace(/^\//, ""));
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(dbName)) {
@@ -12,7 +27,7 @@ async function ensureDatabase(): Promise<void> {
   }
 
   url.pathname = "/postgres";
-  const client = new Client({ connectionString: url.toString() });
+  const client = new Client({ connectionString: url.toString(), ssl: pgSsl() });
   await client.connect();
   try {
     const existing = await client.query(

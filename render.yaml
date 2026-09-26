@@ -1,0 +1,39 @@
+databases:
+  - name: fundmatch-db
+    databaseName: fundmatch_ai
+    user: fundmatch
+    plan: free
+
+services:
+  - type: web
+    name: fundmatch-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install --include=dev && npm run build && npm run migrate
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fundmatch-db
+          property: connectionString
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: https://fundmatch-web.onrender.com
+
+  - type: web
+    name: fundmatch-web
+    runtime: node
+    rootDir: frontend
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://fundmatch-api.onrender.com
