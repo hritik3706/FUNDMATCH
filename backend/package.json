@@ -6,8 +6,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "build": "tsc && node -e \"const fs=require('fs'); fs.copyFileSync('src/db/schema.sql','dist/db/schema.sql'); fs.copyFileSync('src/db/seed.sql','dist/db/seed.sql');\"",
+    "start": "node dist/db/migrate.js && node dist/index.js",
     "migrate": "ts-node src/db/migrate.ts",
     "migrate:reset": "ts-node src/db/migrate.ts --reset",
     "db:local": "ts-node src/db/localServer.ts"

@@ -10,7 +10,7 @@ services:
     runtime: node
     rootDir: backend
     plan: free
-    buildCommand: npm install --include=dev && npm run build && npm run migrate
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -22,8 +22,6 @@ services:
           property: connectionString
       - key: GEMINI_MODEL
         value: gemini-3.5-flash-lite
-      - key: GEMINI_API_KEY
-        sync: false
       - key: FRONTEND_URL
         value: https://fundmatch-web.onrender.com
 
