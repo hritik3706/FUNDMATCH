@@ -46,6 +46,15 @@ export const createProfileSchema = z.object({
     .int("Must be a non-negative number")
     .nonnegative("Must be a non-negative number")
     .optional(),
+  websiteUrl: z
+    .string()
+    .trim()
+    .max(500, "Website URL must be at most 500 characters")
+    .optional()
+    .refine((value) => !value || /^https?:\/\/\S+$/i.test(value), {
+      message: "Must be an http or https URL",
+    })
+    .transform((value) => value || undefined),
 });
 
 export type CreateProfileInput = z.infer<typeof createProfileSchema>;
@@ -62,5 +71,6 @@ export type Profile = {
   gstStatus: GstStatus | null;
   dpiitRegistration: boolean;
   previousFunding: number;
+  websiteUrl: string | null;
   createdAt: string;
 };

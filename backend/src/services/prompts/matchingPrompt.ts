@@ -1,7 +1,7 @@
 import { Profile } from "../../types/profile.types";
 import { Scheme } from "../../types/scheme.types";
 
-export function buildMatchingPrompt(profile: Profile, scheme: Scheme): string {
+export function buildMatchingPrompt(profile: Profile, scheme: Scheme, ideaText?: string): string {
   const criteria = scheme.eligibilityCriteria
     .map(
       (criterion) =>
@@ -23,6 +23,10 @@ STARTUP PROFILE:
 - Previous Funding: ₹${profile.previousFunding || 0} lakhs
 - GST Status: ${profile.gstStatus || "Unknown"}
 - DPIIT Recognition: ${profile.dpiitRegistration || "No"}
+- Website: ${profile.websiteUrl || "Not provided"}
+
+WEBSITE IDEA:
+${ideaText || "No website text was available. Score the profile fields only."}
 
 SCHEME DETAILS:
 - Name: ${scheme.name}

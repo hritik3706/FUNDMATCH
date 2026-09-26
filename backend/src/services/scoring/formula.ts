@@ -1,6 +1,6 @@
 import { Profile } from "../../types/profile.types";
 import { Scheme } from "../../types/scheme.types";
-import { ComponentScores, ScoreBreakdown } from "../../types/matching.types";
+import { ComponentScores } from "../../types/matching.types";
 import { completenessScore, detectGaps } from "./gaps";
 import { fundingScore } from "./funding";
 import { locationScore } from "./location";
@@ -18,12 +18,13 @@ export function componentScores(profile: Profile, scheme: Scheme): ComponentScor
   };
 }
 
-export function formulaScore(components: ComponentScores): number {
-  const raw =
+export function formulaScore(components: ComponentScores, ideaMatch?: number): number {
+  const base =
     components.sectorMatch * 0.25 +
     components.stageMatch * 0.25 +
     components.locationMatch * 0.15 +
     components.fundingRangeMatch * 0.2 +
     components.eligibilityCompleteness * 0.15;
-  return Math.round(Math.max(0, Math.min(1, raw)) * 100);
+  const blended = ideaMatch === undefined ? base : base * 0.8 + ideaMatch * 0.2;
+  return Math.round(Math.max(0, Math.min(1, blended)) * 100);
 }

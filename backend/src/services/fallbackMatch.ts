@@ -5,6 +5,7 @@ import { toScoreBreakdown } from "./scoring/breakdown";
 import { determineEligibility } from "./scoring/eligibility";
 import { componentScores, formulaScore } from "./scoring/formula";
 import { detectGaps } from "./scoring/gaps";
+import { ideaScore } from "./scoring/idea";
 
 const FALLBACK_REASON = "Claude API temporarily unavailable. Using formula-based matching.";
 
@@ -42,10 +43,15 @@ function metCriteria(profile: Profile, scheme: Scheme): MatchedCriterion[] {
   return met;
 }
 
-export function buildFallbackMatch(profile: Profile, scheme: Scheme): SchemeMatch {
+export function buildFallbackMatch(profile: Profile, scheme: Scheme, ideaText?: string): SchemeMatch {
   const gaps = detectGaps(profile, scheme.eligibilityCriteria);
   const components = componentScores(profile, scheme);
-  const compatibilityScore = formulaScore(components);
+  const siteIdea = ideaText?.trim() ? ideaScore(ideaText, scheme) : undefined;
+  const compatibilityScore = formulaScore(components, siteIdea);
+  const ideaSentence =
+    siteIdea === undefined
+      ? ""
+      : ` The startup website describes an idea that is a ${Math.round(siteIdea * 100)}% fit for this scheme.`;
   return {
     profileId: profile.id,
     schemeId: scheme.id,
@@ -54,11 +60,14 @@ export function buildFallbackMatch(profile: Profile, scheme: Scheme): SchemeMatc
     eligibilityStatus: determineEligibility(compatibilityScore, gaps),
     matchedCriteria: metCriteria(profile, scheme),
     missingRequirements: gaps,
-    overallReasoning: gaps.length
-      ? `Formula match for ${scheme.name}. Missing ${gaps.map((gap) => gap.name).join(", ")}.`
-      : `Formula match for ${scheme.name}. No detected mandatory gaps.`,
+    overallReasoning: `${
+      gaps.length
+        ? `Formula match for ${scheme.name}. Missing ${gaps.map((gap) => gap.name).join(", ")}.`
+        : `Formula match for ${scheme.name}. No detected mandatory gaps.`
+    }${ideaSentence}`,
     nextSteps: gaps.length ? gaps.map((gap) => gap.howToFix) : [`Apply to ${scheme.name}`],
-    scoreBreakdown: toScoreBreakdown(components),
+    scoreBreakdown: toScoreBreakdown(components, siteIdea),
+    websiteIdea: ideaText?.trim() ? ideaText.trim().slice(0, 500) : undefined,
     fallbackMode: true,
     fallbackReason: FALLBACK_REASON,
     accuracyNote: "Full eligibility analysis unavailable. Please try again in a few minutes.",

@@ -11,6 +11,7 @@ CREATE TABLE profiles (
   gst_status VARCHAR(50),
   dpiit_registration BOOLEAN DEFAULT FALSE,
   previous_funding INTEGER DEFAULT 0,
+  website_url VARCHAR(500),
 
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
