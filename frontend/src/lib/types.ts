@@ -85,6 +85,21 @@ export type Profile = {
 export type StartupStory = {
   text: string;
   futureIntent: string;
+  targetSector?: string;
+  targetStage?: string;
+  technology?: string;
+  subSector?: string;
+  entityType?: string;
+  city?: string;
+  gstLabel?: string;
+  dpiitLabel?: string;
+  udyamLabel?: string;
+  incorporationLabel?: string;
+  fundingPurpose?: string;
+  fundingInr?: number;
+  revenueLabel?: string;
+  completeness?: number;
+  summary?: string;
 };
 
 export type EligibilityCriterion = {
@@ -155,15 +170,9 @@ export type SchemeMatch = {
     locationMatch: number;
     fundingRangeMatch: number;
     eligibilityCompleteness: number;
+    ideaMatch?: number;
   };
-  requirementChecks?: {
-    name: string;
-    required: boolean;
-    state: RequirementState;
-    detail: string;
-  }[];
-  factorNotes?: string[];
-  relevance?: MatchRelevance;
+  websiteIdea?: string;
   fallbackMode?: boolean;
   fallbackReason?: string;
 };

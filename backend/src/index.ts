@@ -3,6 +3,7 @@ import express from "express";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
 import { actionPlansRouter } from "./routes/actionPlans.routes";
+import { chatRouter } from "./routes/chat.routes";
 import { matchesRouter } from "./routes/matches.routes";
 import { profileRouter } from "./routes/profiles.routes";
 import { schemeRouter } from "./routes/schemes.routes";
@@ -24,6 +25,7 @@ app.use("/api/profiles", profileRouter);
 app.use("/api/schemes", schemeRouter);
 app.use("/api/matches", matchesRouter);
 app.use("/api/action-plans", actionPlansRouter);
+app.use("/api/chat", chatRouter);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -35,6 +37,6 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, "0.0.0.0", () => {
   console.log(`FundMatch API listening on port ${env.PORT}`);
 });

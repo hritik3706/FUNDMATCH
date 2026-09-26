@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { MatchScore } from "@/components/match-score";
 import { useSession } from "@/components/session-provider";
-import { Button, PageHeader, Panel, StateMessage, StatusBadge, Icon } from "@/components/ui";
-import { displayStatus, fundingLabel, notProvided } from "@/lib/format";
-import type { RequirementState, Scheme, SchemeMatch } from "@/lib/types";
+import { Button, PageHeader, Panel, StateMessage, StatusBadge } from "@/components/ui";
+import { displayStatus, fundingRange, notProvided } from "@/lib/format";
+import type { Scheme, SchemeMatch } from "@/lib/types";
 import { savedSchemeIds, toggleSaved, trackApplication } from "@/services/accountService";
 import { getMatch, matchContext } from "@/services/matchService";
 import { getScheme } from "@/services/schemeService";
@@ -113,9 +113,10 @@ export default function SchemeDetailPage() {
                 </Panel>
               ) : null}
               <Panel>
-                <h2 className="font-headline-md text-headline-md text-primary">Benefits</h2>
-                <p className="mt-2 font-body-md text-body-md text-on-surface">{funding ?? "Not available from source"}</p>
-                {scheme.benefit ? <p className="mt-2 font-body-sm text-body-sm text-on-surface-variant">{scheme.benefit}</p> : null}
+                <h2 className="font-headline-md text-headline-md text-primary">Funding</h2>
+                <p className="mt-2 font-data-mono text-data-mono text-primary">{fundingRange(scheme.fundingMin, scheme.fundingMax)}</p>
+                <p className="mt-2 font-body-sm text-body-sm text-on-surface-variant">Dates: Not provided</p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">Application process: Not provided</p>
               </Panel>
               <Panel>
                 <h2 className="font-headline-md text-headline-md text-primary">Eligibility</h2>

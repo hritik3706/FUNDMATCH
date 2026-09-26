@@ -5,16 +5,17 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { DashboardSchemeCard } from "@/components/dashboard-scheme-card";
 import { Button, PageHeader, Panel, StateMessage } from "@/components/ui";
-import { useRelevantMatches } from "@/hooks/use-relevant-matches";
-import { inr } from "@/lib/format";
-import type { SchemeSummary } from "@/lib/types";
+import { formatInr, storedToInr } from "@/lib/extractStory";
+import { downloadEvaluationPdf } from "@/lib/evaluationPdf";
+import type { SchemeMatch, SchemeSummary } from "@/lib/types";
 import { savedSchemeIds, toggleSaved } from "@/services/accountService";
 import { listSchemes } from "@/services/schemeService";
 
 const PAGE_SIZE = 8;
 
 export default function DashboardPage() {
-  const { profile, matches, result, loading, error, reload } = useRelevantMatches();
+  const { profile, story } = useSession();
+  const [matches, setMatches] = useState<SchemeMatch[]>([]);
   const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [page, setPage] = useState(0);
@@ -71,7 +72,7 @@ export default function DashboardPage() {
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Relevant schemes</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{total}</p><p className="mt-1 font-body-sm text-body-sm text-on-surface-variant">{countLabel}</p></Panel>
             <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Fully eligible</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{strong}</p></Panel>
-            <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Funding sought</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{inr(profile.fundingNeeded)}</p></Panel>
+            <Panel><p className="font-label-caps text-label-caps uppercase text-on-surface-variant">Funding sought</p><p className="mt-2 font-headline-lg text-headline-lg text-primary">{formatInr(story.fundingInr || storedToInr(profile.fundingNeeded))}</p></Panel>
           </div>
           {matches.length === 0 ? (
             <StateMessage
@@ -111,6 +112,11 @@ export default function DashboardPage() {
               ) : null}
             </>
           )}
+          {matches.length > 0 ? (
+            <div className="mt-6">
+              <Button variant="secondary" onClick={() => downloadEvaluationPdf(profile, matches)}>Download PDF</Button>
+            </div>
+          ) : null}
         </>
       ) : null}
     </AppShell>

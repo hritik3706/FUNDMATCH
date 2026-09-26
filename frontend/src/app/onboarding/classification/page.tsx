@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { useSession } from "@/components/session-provider";
 import { Button, PageHeader, Panel, StateMessage } from "@/components/ui";
+import { formatInr, storedToInr } from "@/lib/extractStory";
 import { notProvided } from "@/lib/format";
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -16,38 +17,34 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 export default function ClassificationPage() {
-  const { profile, story } = useSession();
+  const { profile, story, ready } = useSession();
   return (
     <AppShell>
-      <PageHeader eyebrow="Classification" title="Current state and future intent" description="Current state is the profile stored by the API. Future intent is only what you wrote. Nothing else is inferred." />
-      {!profile ? (
-        <StateMessage title="Profile not saved" body="Save a startup profile before classification can be shown." action={<Link href="/onboarding/profile"><Button>Review profile</Button></Link>} />
+      <PageHeader eyebrow="Profile" title="Your startup profile" description="These are the fields saved from your story. Open the dashboard to score them against the catalogue." />
+      {!ready ? null : !profile ? (
+        <StateMessage title="Profile not saved" body="Save a startup profile before this page can be shown." action={<Link href="/onboarding/profile"><Button>Review profile</Button></Link>} />
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Panel>
-            <p className="font-label-caps text-label-caps uppercase tracking-widest text-secondary">Current state</p>
-            <dl className="mt-2">
-              <Row label="Startup" value={profile.name} />
-              <Row label="Primary sector" value={profile.sector} />
-              <Row label="Sub-sector" value="Not provided" />
-              <Row label="Stage" value={profile.stage} />
-              <Row label="Funding need" value={String(profile.fundingNeeded)} />
-              <Row label="Geography" value={profile.location} />
-              <Row label="Founder experience" value={profile.founderExperience} />
-              <Row label="DPIIT" value={profile.dpiitRegistration ? "Yes" : "Not provided"} />
-            </dl>
-          </Panel>
-          <Panel>
-            <p className="font-label-caps text-label-caps uppercase tracking-widest text-on-tertiary-container">Future intent</p>
-            <dl className="mt-2">
-              <Row label="Stated intent" value={notProvided(story.futureIntent)} />
-              <Row label="Target sector" value="Not provided" />
-              <Row label="Target stage" value="Not provided" />
-              <Row label="Technology" value="Not provided" />
-            </dl>
-            <Link href="/dashboard" className="mt-6 inline-flex"><Button>Open dashboard</Button></Link>
-          </Panel>
-        </div>
+        <Panel>
+          <dl>
+            <Row label="Startup" value={profile.name} />
+            <Row label="Product" value={notProvided(story.subSector)} />
+            <Row label="Website" value={notProvided(profile.websiteUrl)} />
+            <Row label="Sector" value={profile.sector} />
+            <Row label="Technology" value={notProvided(story.technology)} />
+            <Row label="Stage" value={profile.stage} />
+            <Row label="Funding need" value={formatInr(story.fundingInr || storedToInr(profile.fundingNeeded))} />
+            <Row label="Purpose" value={notProvided(story.fundingPurpose)} />
+            <Row label="Location" value={[story.city, profile.location].filter(Boolean).join(", ")} />
+            <Row label="Entity" value={notProvided(story.entityType)} />
+            <Row label="GST" value={notProvided(story.gstLabel ?? profile.gstStatus)} />
+            <Row label="DPIIT" value={story.dpiitLabel ?? (profile.dpiitRegistration ? "Recognised" : "Not recognised")} />
+            <Row label="Udyam" value={notProvided(story.udyamLabel)} />
+            <Row label="Revenue" value={notProvided(story.revenueLabel)} />
+            <Row label="Founder experience" value={profile.founderExperience} />
+            <Row label="Previous funding" value={profile.previousFunding ? formatInr(storedToInr(profile.previousFunding)) : "Not provided"} />
+          </dl>
+          <Link href="/dashboard" className="mt-6 inline-flex"><Button>Open dashboard</Button></Link>
+        </Panel>
       )}
     </AppShell>
   );

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { useSession } from "@/components/session-provider";
 import { Button, PageHeader, Panel, StateMessage, StatusBadge } from "@/components/ui";
+import { downloadEvaluationPdf } from "@/lib/evaluationPdf";
 import { displayStatus } from "@/lib/format";
 import type { SchemeMatch } from "@/lib/types";
 import { analyzeProfile, getMatch, matchContext } from "@/services/matchService";
@@ -74,6 +75,7 @@ export default function EligibilityPage() {
               ))}
             </ul>
           </Panel>
+          {profile ? <Button variant="secondary" onClick={() => downloadEvaluationPdf(profile, [match])}>Download PDF</Button> : null}
         </div>
       ) : null}
     </AppShell>
