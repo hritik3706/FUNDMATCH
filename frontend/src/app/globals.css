@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #00050e;
+  --color-primary-container: #0b1f33;
+  --color-secondary: #0051d5;
+  --color-tertiary: #bb7700;
+  --color-background: #f8f9ff;
+  --color-surface: #ffffff;
+  --color-border: #c4c6cd;
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #ba1a1a;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #f8f9ff;
+  color: #0b1c30;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+  line-height: 1;
+  user-select: none;
+}
+
+:focus-visible {
+  outline: 2px solid #0051d5;
+  outline-offset: 2px;
+}
