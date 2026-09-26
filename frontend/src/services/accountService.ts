@@ -6,6 +6,19 @@ const SESSION_KEY = "ps41.session";
 const SAVED_KEY = "ps41.saved";
 const APPS_KEY = "ps41.applications";
 const NOTES_KEY = "ps41.notifications";
+const PREFS_KEY = "ps41.notificationPrefs";
+
+export type NotificationPreferences = {
+  schemeUpdates: boolean;
+  deadlineReminders: boolean;
+  applicationUpdates: boolean;
+};
+
+const defaultPreferences: NotificationPreferences = {
+  schemeUpdates: true,
+  deadlineReminders: true,
+  applicationUpdates: true,
+};
 
 type StoredUser = User & { passwordHash: string };
 
@@ -58,6 +71,40 @@ export function signOut() {
   writeJson(SESSION_KEY, null);
 }
 
+export async function updateAccount(input: { name?: string; email?: string }) {
+  const session = currentUser();
+  if (!session) throw new Error("Sign in to update your account.");
+  const all = users();
+  const index = all.findIndex((user) => user.id === session.id);
+  if (index < 0) throw new Error("This account is not on this device.");
+  const email = input.email?.trim().toLowerCase();
+  if (email && all.some((user) => user.email === email && user.id !== session.id)) {
+    throw new Error("An account with this email already exists.");
+  }
+  const next = { ...all[index] };
+  if (input.name?.trim()) next.name = input.name.trim();
+  if (email) next.email = email;
+  all[index] = next;
+  writeJson(USERS_KEY, all);
+  const updated: User = { id: next.id, name: next.name, email: next.email };
+  writeJson(SESSION_KEY, updated);
+  return updated;
+}
+
+export async function changePassword(input: { currentPassword: string; nextPassword: string }) {
+  const session = currentUser();
+  if (!session) throw new Error("Sign in to change your password.");
+  if (input.nextPassword.length < 8) throw new Error("Use a password of at least 8 characters.");
+  const all = users();
+  const index = all.findIndex((user) => user.id === session.id);
+  if (index < 0) throw new Error("This account is not on this device.");
+  if (all[index].passwordHash !== (await hashPassword(input.currentPassword))) {
+    throw new Error("The current password does not match.");
+  }
+  all[index] = { ...all[index], passwordHash: await hashPassword(input.nextPassword) };
+  writeJson(USERS_KEY, all);
+}
+
 export function savedSchemeIds() {
   return readJson<string[]>(SAVED_KEY, []);
 }
@@ -107,10 +154,37 @@ export function notifications() {
   return readJson<AppNotification[]>(NOTES_KEY, []);
 }
 
+export function loadNotifications() {
+  if (typeof window === "undefined" || typeof window.localStorage === "undefined") return notifications();
+  const raw = window.localStorage.getItem(NOTES_KEY);
+  if (!raw) return [];
+  const parsed = JSON.parse(raw) as unknown;
+  if (!Array.isArray(parsed)) throw new Error("Notifications could not be loaded.");
+  return parsed as AppNotification[];
+}
+
+export function notificationPreferences() {
+  return { ...defaultPreferences, ...readJson<Partial<NotificationPreferences>>(PREFS_KEY, {}) };
+}
+
+export function saveNotificationPreferences(preferences: NotificationPreferences) {
+  writeJson(PREFS_KEY, preferences);
+  return preferences;
+}
+
+function notificationAllowed(category: AppNotification["category"]) {
+  const preferences = notificationPreferences();
+  if (category === "scheme") return preferences.schemeUpdates;
+  if (category === "application") return preferences.applicationUpdates;
+  return true;
+}
+
 export function addNotification(input: Omit<AppNotification, "id" | "createdAt" | "read">) {
+  const current = notifications();
+  if (!notificationAllowed(input.category)) return current;
   const next: AppNotification[] = [
     { ...input, id: crypto.randomUUID(), createdAt: new Date().toISOString(), read: false },
-    ...notifications(),
+    ...current,
   ];
   writeJson(NOTES_KEY, next);
   return next;

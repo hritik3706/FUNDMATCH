@@ -31,7 +31,7 @@ export default function LandingPage() {
               Find the right government schemes for your startup.
             </h1>
             <p className="font-body-lg text-body-lg leading-relaxed text-on-surface-variant">
-              Tell PS41 where your startup is today and where you want to go. Discover schemes from the catalogue, understand eligibility, identify missing requirements, and build a path to apply.
+              Tell FundMatch where your startup is today and where you want to go. Discover schemes from the catalogue, understand eligibility, identify missing requirements, and build a path to apply.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <Link href="/onboarding/story" className="inline-flex items-center gap-2 rounded bg-primary px-6 py-3.5 font-label-lg text-label-lg text-on-primary shadow-md hover:bg-inverse-surface">
@@ -96,7 +96,7 @@ export default function LandingPage() {
       <section className="bg-surface-container-low py-20" id="how-it-works">
         <div className="mx-auto max-w-7xl px-6">
           <p className="font-label-caps text-label-caps uppercase tracking-widest text-secondary">Workflow</p>
-          <h2 className="mt-1 font-headline-xl text-headline-xl font-bold tracking-tight text-primary">How PS41 prepares your startup</h2>
+          <h2 className="mt-1 font-headline-xl text-headline-xl font-bold tracking-tight text-primary">How FundMatch prepares your startup</h2>
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {steps.map((step) => (
               <article key={step.n} className="rounded-xl bg-surface-container-lowest p-6 shadow-sm">

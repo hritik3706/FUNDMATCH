@@ -19,10 +19,10 @@ export default function NotificationsPage() {
       <PageHeader
         eyebrow="Inbox"
         title="Notifications"
-        description="Only events from this session are listed. The API does not send notifications yet."
+        description="Activity saved on this device."
         actions={<Button variant="secondary" onClick={() => setItems(markAllNotificationsRead())}>Mark all read</Button>}
       />
-      {items.length === 0 ? <StateMessage title="No notifications" body="Saving a profile or starting application tracking will appear here." /> : null}
+      {items.length === 0 ? <StateMessage title="You're all caught up." body="Scheme and application activity will show up here." /> : null}
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id}>

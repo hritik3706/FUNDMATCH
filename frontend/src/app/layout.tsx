@@ -25,7 +25,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PS41 — Startup Scheme & Funding Agent",
+  title: "FundMatch — Startup Scheme & Funding Agent",
   description: "Find the right government schemes for your startup.",
 };
 
