@@ -1,5 +1,5 @@
 import type { Profile, SchemeMatch } from "@/lib/types";
-import { inr } from "@/lib/format";
+import { formatInr, storedToInr } from "@/lib/extractStory";
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
@@ -69,7 +69,7 @@ function reportLines(profile: Profile, matches: SchemeMatch[]): DrawLine[] {
   blank();
   add("Startup", 14, true);
   add(`${profile.name} · ${profile.sector} · ${profile.stage}`);
-  add(`${profile.location} · Funding sought ${inr(profile.fundingNeeded)}`);
+  add(`${profile.location} · Funding sought ${formatInr(storedToInr(profile.fundingNeeded))}`);
   add(`Website: ${profile.websiteUrl || "Not provided"}`);
   blank();
   add(`${matches.length} scheme${matches.length === 1 ? "" : "s"} ranked`, 14, true);
