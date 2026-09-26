@@ -16,6 +16,33 @@ type ProfileRow = {
   created_at: Date;
 };
 
+const PROFILE_COLUMNS = `
+  id,
+  name,
+  sector,
+  stage,
+  location,
+  funding_needed,
+  founder_experience,
+  incorporation_date,
+  gst_status,
+  dpiit_registration,
+  previous_funding,
+  created_at
+`;
+
+export async function findProfileById(id: string): Promise<Profile | null> {
+  const result = await pool.query<ProfileRow>(
+    `SELECT ${PROFILE_COLUMNS} FROM profiles WHERE id = $1`,
+    [id],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    return null;
+  }
+  return toProfile(row);
+}
+
 export async function insertProfile(input: CreateProfileInput): Promise<Profile> {
   const result = await pool.query<ProfileRow>(
     `INSERT INTO profiles (
@@ -30,19 +57,7 @@ export async function insertProfile(input: CreateProfileInput): Promise<Profile>
       dpiit_registration,
       previous_funding
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    RETURNING
-      id,
-      name,
-      sector,
-      stage,
-      location,
-      funding_needed,
-      founder_experience,
-      incorporation_date,
-      gst_status,
-      dpiit_registration,
-      previous_funding,
-      created_at`,
+    RETURNING ${PROFILE_COLUMNS}`,
     [
       input.name,
       input.sector,

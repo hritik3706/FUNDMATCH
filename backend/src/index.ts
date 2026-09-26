@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
+import { actionPlansRouter } from "./routes/actionPlans.routes";
+import { matchesRouter } from "./routes/matches.routes";
 import { profileRouter } from "./routes/profiles.routes";
 import { schemeRouter } from "./routes/schemes.routes";
 
@@ -20,6 +22,8 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/profiles", profileRouter);
 app.use("/api/schemes", schemeRouter);
+app.use("/api/matches", matchesRouter);
+app.use("/api/action-plans", actionPlansRouter);
 
 app.use((req, res) => {
   res.status(404).json({
