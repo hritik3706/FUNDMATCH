@@ -24,6 +24,7 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
     gstStatus: initial?.gstStatus ?? undefined,
     dpiitRegistration: initial?.dpiitRegistration ?? false,
     previousFunding: initial?.previousFunding ?? 0,
+    websiteUrl: initial?.websiteUrl ?? "",
   });
 
   function set<K extends keyof CreateProfileInput>(key: K, value: CreateProfileInput[K]) {
@@ -45,6 +46,7 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
         incorporationDate: form.incorporationDate || undefined,
         gstStatus: form.gstStatus || undefined,
         previousFunding: form.previousFunding || undefined,
+        websiteUrl: form.websiteUrl?.trim() || undefined,
       };
       const result = await createProfile(payload);
       saveProfile(result.profile);
@@ -65,6 +67,7 @@ export function ProfileForm({ initial, submitLabel = "Save profile" }: { initial
   return (
     <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={onSubmit}>
       <TextField label="Startup name" name="name" value={form.name} onChange={(event) => set("name", event.target.value)} />
+      <TextField label="Startup website" name="websiteUrl" type="url" placeholder="https://yourstartup.com" value={form.websiteUrl ?? ""} onChange={(event) => set("websiteUrl", event.target.value)} hint="Public http or https address. The page text is used when scoring scheme fit." />
       <SelectField label="Sector" name="sector" value={form.sector} onChange={(event) => set("sector", event.target.value as CreateProfileInput["sector"])}>
         {SECTORS.map((sector) => <option key={sector}>{sector}</option>)}
       </SelectField>

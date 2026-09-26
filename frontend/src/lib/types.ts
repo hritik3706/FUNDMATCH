@@ -63,6 +63,7 @@ export type CreateProfileInput = {
   gstStatus?: GstStatus;
   dpiitRegistration?: boolean;
   previousFunding?: number;
+  websiteUrl?: string;
 };
 
 export type Profile = {
@@ -77,6 +78,7 @@ export type Profile = {
   gstStatus: GstStatus | null;
   dpiitRegistration: boolean;
   previousFunding: number;
+  websiteUrl?: string | null;
   createdAt: string;
 };
 
