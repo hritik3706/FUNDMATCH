@@ -2,26 +2,15 @@ import fs from "fs";
 import path from "path";
 import { Client } from "pg";
 import { env } from "../config/env";
-import { pool } from "../config/db";
-
-function pgSsl() {
-  return /render\.com|sslmode=require/i.test(env.DATABASE_URL)
-    ? { rejectUnauthorized: false as const }
-    : undefined;
-}
+import { pgSsl, pool } from "../config/db";
 
 async function ensureDatabase(): Promise<void> {
-  const probe = new Client({ connectionString: env.DATABASE_URL, ssl: pgSsl() });
-  try {
-    await probe.connect();
-    await probe.end();
+  if (env.NODE_ENV === "production") {
     return;
-  } catch {
-    await probe.end().catch(() => undefined);
   }
 
   const url = new URL(env.DATABASE_URL);
-  const dbName = decodeURIComponent(url.pathname.replace(/^\//, ""));
+  const dbName = decodeURIComponent(url.pathname.replace(/^\//, "").split("?")[0]);
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(dbName)) {
     throw new Error(`Refusing to create a database named ${dbName}`);
   }
@@ -47,7 +36,9 @@ async function main(): Promise<void> {
   await ensureDatabase();
 
   const reset = process.argv.includes("--reset");
-  const dir = __dirname;
+  const dir = fs.existsSync(path.join(__dirname, "schema.sql"))
+    ? __dirname
+    : path.join(__dirname, "../../src/db");
   const schema = fs.readFileSync(path.join(dir, "schema.sql"), "utf8");
   const seed = fs.readFileSync(path.join(dir, "seed.sql"), "utf8");
   const client = await pool.connect();

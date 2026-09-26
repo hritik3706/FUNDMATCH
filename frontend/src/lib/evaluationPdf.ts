@@ -1,5 +1,5 @@
 import type { Profile, SchemeMatch } from "@/lib/types";
-import { storedToInr, formatInr } from "@/lib/extractStory";
+import { formatInr, storedToInr } from "@/lib/extractStory";
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;

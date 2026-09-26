@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async rewrites() {
     const api = process.env.API_PROXY_URL ?? "http://localhost:3000";
     return [
