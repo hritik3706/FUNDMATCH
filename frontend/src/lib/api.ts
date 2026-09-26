@@ -8,7 +8,7 @@ export class ApiError extends Error {
   }
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 function friendlyMessage(body: unknown, fallback: string) {
   if (!body || typeof body !== "object") return fallback;
