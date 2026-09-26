@@ -63,6 +63,7 @@ export type CreateProfileInput = {
   gstStatus?: GstStatus;
   dpiitRegistration?: boolean;
   previousFunding?: number;
+  websiteUrl?: string;
 };
 
 export type Profile = {
@@ -77,6 +78,7 @@ export type Profile = {
   gstStatus: GstStatus | null;
   dpiitRegistration: boolean;
   previousFunding: number;
+  websiteUrl?: string | null;
   createdAt: string;
 };
 
@@ -118,7 +120,12 @@ export type BackendEligibilityStatus =
   | "FULLY_ELIGIBLE"
   | "PARTIALLY_ELIGIBLE"
   | "UNLIKELY_ELIGIBLE"
-  | "NOT_ELIGIBLE";
+  | "NOT_ELIGIBLE"
+  | "INSUFFICIENT_INFORMATION";
+
+export type RequirementState = "satisfied" | "missing" | "unknown" | "not_satisfied";
+
+export type MatchRelevance = "now" | "potential" | "future";
 
 export type DisplayEligibility =
   | "ELIGIBLE"
@@ -149,6 +156,14 @@ export type SchemeMatch = {
     fundingRangeMatch: number;
     eligibilityCompleteness: number;
   };
+  requirementChecks?: {
+    name: string;
+    required: boolean;
+    state: RequirementState;
+    detail: string;
+  }[];
+  factorNotes?: string[];
+  relevance?: MatchRelevance;
   fallbackMode?: boolean;
   fallbackReason?: string;
 };

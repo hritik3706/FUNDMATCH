@@ -3,174 +3,162 @@ import { findSchemeById, listSchemes } from "../repositories/scheme.repository";
 import { findStoredMatch, upsertMatch } from "../repositories/match.repository";
 import { findProfileById } from "../repositories/profile.repository";
 import { HttpError } from "../middleware/httpError";
-import { ClaudeUnavailableError, Gap, SchemeMatch } from "../types/matching.types";
+import { SchemeMatch, SCORING_VERSION } from "../types/matching.types";
 import { Scheme } from "../types/scheme.types";
 import { Profile } from "../types/profile.types";
 import { CACHE_TTL, cacheGet, cacheSet, matchCacheKey } from "./cache.service";
-import { completeJson, parseModelJson } from "./claude.service";
 import { buildFallbackMatch } from "./fallbackMatch";
-import { buildMatchingPrompt } from "./prompts/matchingPrompt";
-import { toScoreBreakdown } from "./scoring/breakdown";
-import { determineEligibility } from "./scoring/eligibility";
-import { componentScores, formulaScore } from "./scoring/formula";
-import { detectGaps } from "./scoring/gaps";
+import { buildUnifiedProfile, FieldConflict, StartupMatchingProfile } from "./profile/unifiedProfile";
+import { componentScores } from "./scoring/formula";
 import { ideaScore } from "./scoring/idea";
-import { readStartupSite } from "./website/readStartupSite";
+import { selectRelevant } from "./scoring/relevance";
+import { readStartupWebsite, WebsiteStatus } from "./website/firecrawl";
 
-type ClaudeMatchJson = {
-  compatibilityScore?: number;
-  matchedCriteria?: SchemeMatch["matchedCriteria"];
-  missingRequirements?: Gap[];
-  overallReasoning?: string;
-  nextSteps?: string[];
+export type MatchContext = {
+  story?: string;
+  futureIntent?: string;
 };
 
-function clampScore(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
+export type AnalyzeResult = {
+  matches: SchemeMatch[];
+  processedSchemes: number;
+  totalRelevant: number;
+  matchThreshold: number;
+  totalTime: number;
+  websiteStatus: WebsiteStatus;
+  websiteNotice?: string;
+  conflicts: FieldConflict[];
+  missingFields: string[];
+  informationStatus: "ready" | "incomplete" | "conflict";
+  unifiedProfile: StartupMatchingProfile;
+  fallbackMode: boolean;
+  fallbackReason?: string;
+};
+
+function contextHash(profile: Profile, context: MatchContext, websiteText: string): string {
+  const text = [
+    profile.sector,
+    profile.stage,
+    profile.location,
+    String(profile.fundingNeeded),
+    profile.gstStatus ?? "",
+    String(profile.dpiitRegistration),
+    profile.incorporationDate ?? "",
+    profile.websiteUrl ?? "",
+    context.story ?? "",
+    context.futureIntent ?? "",
+    websiteText,
+    String(env.MATCH_THRESHOLD),
+    String(SCORING_VERSION),
+  ].join("\n");
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
   }
-  return Math.round(Math.max(0, Math.min(100, value)));
+  return hash.toString(16);
 }
 
-function blendWithIdea(baseScore: number, siteIdea: number | undefined): number {
-  if (siteIdea === undefined) {
-    return baseScore;
-  }
-  return clampScore(baseScore * 0.8 + siteIdea * 20);
+function ideaTextFor(context: MatchContext, websiteText: string): string | undefined {
+  const text = [websiteText, context.story?.trim() ?? ""].filter(Boolean).join("\n");
+  return text || undefined;
 }
 
-async function matchWithClaude(profile: Profile, scheme: Scheme, ideaText?: string): Promise<SchemeMatch> {
-  const raw = await completeJson(buildMatchingPrompt(profile, scheme, ideaText), 1800);
-  const parsed = parseModelJson<ClaudeMatchJson>(raw);
-  const gaps = (parsed.missingRequirements?.length
-    ? parsed.missingRequirements
-    : detectGaps(profile, scheme.eligibilityCriteria)
-  ).map((gap) => ({
-    name: gap.name,
-    status: "missing" as const,
-    impact: gap.impact ?? "medium",
-    howToFix: gap.howToFix ?? `Complete ${gap.name}`,
-    estimatedTime: gap.estimatedTime,
-    type: gap.type,
-  }));
-  const components = componentScores(profile, scheme);
-  const siteIdea = ideaText?.trim() ? ideaScore(ideaText, scheme) : undefined;
-  const compatibilityScore = blendWithIdea(
-    clampScore(parsed.compatibilityScore ?? formulaScore(components)),
-    siteIdea,
-  );
-  const fallback = buildFallbackMatch(profile, scheme, ideaText);
-
-  return {
-    profileId: profile.id,
-    schemeId: scheme.id,
-    schemeName: scheme.name,
-    compatibilityScore,
-    eligibilityStatus: determineEligibility(compatibilityScore, gaps),
-    matchedCriteria: parsed.matchedCriteria?.length ? parsed.matchedCriteria : fallback.matchedCriteria,
-    missingRequirements: gaps,
-    overallReasoning: parsed.overallReasoning ?? fallback.overallReasoning,
-    nextSteps: parsed.nextSteps?.length ? parsed.nextSteps : fallback.nextSteps,
-    scoreBreakdown: toScoreBreakdown(components, siteIdea),
-    websiteIdea: ideaText?.trim() ? ideaText.trim().slice(0, 500) : undefined,
-  };
-}
-
-async function matchOne(profile: Profile, scheme: Scheme, ideaText?: string): Promise<SchemeMatch> {
-  const key = matchCacheKey(profile.id, scheme.id);
+async function scoreScheme(
+  profile: Profile,
+  scheme: Scheme,
+  context: MatchContext,
+  websiteText: string,
+  hash: string,
+): Promise<SchemeMatch> {
+  const key = matchCacheKey(profile.id, scheme.id, hash);
   const cached = cacheGet<SchemeMatch>(key);
-  if (cached) {
+  if (cached && cached.scoringVersion === SCORING_VERSION && cached.contextHash === hash) {
     return cached;
   }
 
   const stored = await findStoredMatch(profile.id, scheme.id);
-  if (stored) {
+  if (stored && stored.scoringVersion === SCORING_VERSION && stored.contextHash === hash) {
     cacheSet(key, stored, CACHE_TTL.matchMs);
     return stored;
   }
 
-  let match: SchemeMatch;
-  try {
-    match = await matchWithClaude(profile, scheme, ideaText);
-  } catch (error) {
-    const reason =
-      error instanceof ClaudeUnavailableError
-        ? error.message
-        : "Gemini API temporarily unavailable. Using formula-based matching.";
-    match = buildFallbackMatch(profile, scheme, ideaText, reason);
-  }
-
+  const match = buildFallbackMatch(profile, scheme, ideaTextFor(context, websiteText));
+  match.contextHash = hash;
   cacheSet(key, match, CACHE_TTL.matchMs);
   await upsertMatch(match);
   return match;
 }
 
-export async function analyzeProfile(profileId: string): Promise<{
-  matches: SchemeMatch[];
-  processedSchemes: number;
-  totalTime: number;
-  fallbackMode: boolean;
-  fallbackReason?: string;
-}> {
+export async function analyzeProfile(profileId: string, context: MatchContext = {}): Promise<AnalyzeResult> {
   const started = Date.now();
   const profile = await findProfileById(profileId);
   if (!profile) {
     throw new HttpError(404, "Resource not found", undefined, `Profile with ID ${profileId} not found`);
   }
 
-  const idea = profile.websiteUrl ? await readStartupSite(profile.websiteUrl) : null;
+  const website = await readStartupWebsite(profile.websiteUrl);
+  const websiteText = website.idea?.text ?? "";
+  const unifiedProfile = buildUnifiedProfile(profile, context.story, context.futureIntent, website.idea);
+  const hash = contextHash(profile, context, websiteText);
+
+  if (unifiedProfile.missingFields.length > 0) {
+    return {
+      matches: [],
+      processedSchemes: 0,
+      totalRelevant: 0,
+      matchThreshold: env.MATCH_THRESHOLD,
+      totalTime: Math.round(((Date.now() - started) / 1000) * 10) / 10,
+      websiteStatus: website.status,
+      websiteNotice: website.notice,
+      conflicts: unifiedProfile.conflicts,
+      missingFields: unifiedProfile.missingFields,
+      informationStatus: "incomplete",
+      unifiedProfile,
+      fallbackMode: false,
+    };
+  }
+
   const summaries = await listSchemes();
   const schemes = (
     await Promise.all(summaries.map((summary) => findSchemeById(summary.id)))
   ).filter((scheme): scheme is Scheme => scheme !== null);
 
-  const missingKey = !env.GEMINI_API_KEY && !env.CLAUDE_API_KEY;
-  const ranked = schemes
-    .map((scheme) => {
-      const match = buildFallbackMatch(
-        profile,
-        scheme,
-        idea?.text,
-        missingKey ? "GEMINI_API_KEY is not set" : undefined,
-      );
-      if (!missingKey) {
-        match.fallbackMode = false;
-        match.fallbackReason = undefined;
-      }
-      return { scheme, match };
-    })
-    .sort((left, right) => right.match.compatibilityScore - left.match.compatibilityScore);
+  const scored = await Promise.all(
+    schemes.map(async (scheme) => {
+      const match = await scoreScheme(profile, scheme, context, websiteText, hash);
+      const futureFit = context.futureIntent?.trim() ? ideaScore(context.futureIntent, scheme) : 0;
+      return {
+        match,
+        components: componentScores(profile, scheme),
+        futureFit,
+      };
+    }),
+  );
 
-  if (!missingKey) {
-    for (const row of ranked.slice(0, 3)) {
-      try {
-        row.match = await matchWithClaude(profile, row.scheme, idea?.text);
-      } catch (error) {
-        const reason =
-          error instanceof ClaudeUnavailableError
-            ? error.message
-            : "Gemini API temporarily unavailable. Using formula-based matching.";
-        row.match = buildFallbackMatch(profile, row.scheme, idea?.text, reason);
-      }
-    }
-  }
+  const matches = selectRelevant(scored, env.MATCH_THRESHOLD);
+  await Promise.all(matches.map((match) => upsertMatch(match)));
 
-  const ordered = ranked
-    .map((row) => row.match)
-    .sort((left, right) => right.compatibilityScore - left.compatibilityScore);
-  await Promise.all(ordered.map((match) => upsertMatch(match)));
-  const top = ordered.slice(0, 10);
-  const fallback = top.find((match) => match.fallbackMode);
   return {
-    matches: top,
+    matches,
     processedSchemes: schemes.length,
+    totalRelevant: matches.length,
+    matchThreshold: env.MATCH_THRESHOLD,
     totalTime: Math.round(((Date.now() - started) / 1000) * 10) / 10,
-    fallbackMode: Boolean(fallback),
-    fallbackReason: fallback?.fallbackReason,
+    websiteStatus: website.status,
+    websiteNotice: website.notice,
+    conflicts: unifiedProfile.conflicts,
+    missingFields: unifiedProfile.missingFields,
+    informationStatus: unifiedProfile.conflicts.length > 0 ? "conflict" : "ready",
+    unifiedProfile,
+    fallbackMode: false,
   };
 }
 
-export async function getMatchDetail(profileId: string, schemeId: string): Promise<SchemeMatch> {
+export async function getMatchDetail(
+  profileId: string,
+  schemeId: string,
+  context: MatchContext = {},
+): Promise<SchemeMatch> {
   const profile = await findProfileById(profileId);
   if (!profile) {
     throw new HttpError(404, "Resource not found", undefined, `Profile with ID ${profileId} not found`);
@@ -179,6 +167,14 @@ export async function getMatchDetail(profileId: string, schemeId: string): Promi
   if (!scheme) {
     throw new HttpError(404, "Resource not found", undefined, "Scheme not found");
   }
-  const idea = profile.websiteUrl ? await readStartupSite(profile.websiteUrl) : null;
-  return matchOne(profile, scheme, idea?.text);
+  const website = await readStartupWebsite(profile.websiteUrl);
+  const websiteText = website.idea?.text ?? "";
+  const hash = contextHash(profile, context, websiteText);
+  const match = await scoreScheme(profile, scheme, context, websiteText, hash);
+  const futureFit = context.futureIntent?.trim() ? ideaScore(context.futureIntent, scheme) : 0;
+  const [relevant] = selectRelevant(
+    [{ match, components: componentScores(profile, scheme), futureFit }],
+    env.MATCH_THRESHOLD,
+  );
+  return relevant ?? match;
 }

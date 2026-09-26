@@ -6,6 +6,7 @@ export type SiteIdea = {
   url: string;
   title: string;
   text: string;
+  source?: "firecrawl" | "page";
 };
 
 const MAX_BYTES = 500_000;

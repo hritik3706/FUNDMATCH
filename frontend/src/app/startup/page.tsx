@@ -1,13 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ProfileForm } from "@/components/profile-form";
 import { PageHeader, Panel, StateMessage } from "@/components/ui";
 import { useSession } from "@/components/session-provider";
 import { notProvided } from "@/lib/format";
+import { readJson } from "@/lib/storage";
 
 export default function StartupPage() {
   const { profile, story, ready } = useSession();
+  const [documents, setDocuments] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = readJson<{ name: string }[]>("ps41.documents", []);
+    setDocuments(saved.map((item) => item.name).filter(Boolean));
+  }, [ready, profile?.id]);
   const fields = profile
     ? [profile.name, profile.sector, profile.stage, profile.location, profile.founderExperience, profile.gstStatus, profile.incorporationDate].filter(Boolean).length
     : 0;
@@ -25,7 +33,7 @@ export default function StartupPage() {
             <div className="h-full bg-secondary" style={{ width: `${completion}%` }} />
           </div>
           <p className="mt-3 font-body-sm text-body-sm text-on-surface-variant">Future plans: {notProvided(story.futureIntent)}</p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">Documents: Not provided</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">Documents: {documents.length ? documents.join(", ") : "Not provided"}</p>
         </Panel>
       ) : null}
       {ready ? (

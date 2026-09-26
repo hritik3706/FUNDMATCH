@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { inr } from "@/lib/format";
-import type { SchemeSummary } from "@/lib/types";
-import { Icon } from "@/components/ui";
+import { MatchScore } from "@/components/match-score";
+import { Icon, StatusBadge } from "@/components/ui";
+import { displayStatus, inr, relevanceLabel } from "@/lib/format";
+import type { SchemeMatch, SchemeSummary } from "@/lib/types";
 
-export function SchemeCard({ scheme }: { scheme: SchemeSummary }) {
+export function SchemeCard({ scheme, match }: { scheme: SchemeSummary; match?: SchemeMatch }) {
   return (
     <article className="flex flex-col justify-between rounded-xl border border-[#e2e8f0] bg-surface-container-lowest p-6 shadow-sm transition hover:border-[#cbd5e1] hover:shadow-tier2">
       <div>
@@ -14,6 +15,13 @@ export function SchemeCard({ scheme }: { scheme: SchemeSummary }) {
           </span>
         </div>
         <h2 className="font-headline-sm text-headline-sm font-bold text-primary">{scheme.name}</h2>
+        {match ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <MatchScore score={match.compatibilityScore} />
+            <StatusBadge status={displayStatus(match.eligibilityStatus)} />
+            {relevanceLabel(match.relevance) ? <span className="font-label-md text-xs text-on-surface-variant">{relevanceLabel(match.relevance)}</span> : null}
+          </div>
+        ) : null}
         <p className="mt-2 font-body-sm text-body-sm text-on-surface-variant">{scheme.description}</p>
         <dl className="mt-6 space-y-2 rounded-lg bg-surface-container-low p-4 font-data-mono text-xs">
           <div className="flex justify-between gap-4">

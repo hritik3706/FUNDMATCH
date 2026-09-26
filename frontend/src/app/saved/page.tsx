@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { SchemeCard } from "@/components/scheme-card";
 import { Button, PageHeader, StateMessage } from "@/components/ui";
+import { useRelevantMatches } from "@/hooks/use-relevant-matches";
 import type { SchemeSummary } from "@/lib/types";
 import { savedSchemeIds } from "@/services/accountService";
 import { listSchemes } from "@/services/schemeService";
 
 export default function SavedPage() {
+  const { matches } = useRelevantMatches();
   const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,7 +36,7 @@ export default function SavedPage() {
       {error ? <StateMessage title="Could not load saved schemes" body={error} action={<Button onClick={load}>Retry</Button>} /> : null}
       {!loading && !error && schemes.length === 0 ? <StateMessage title="Nothing saved" body="Open a scheme and choose Save to keep it here." /> : null}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {schemes.map((scheme) => <SchemeCard key={scheme.id} scheme={scheme} />)}
+        {schemes.map((scheme) => <SchemeCard key={scheme.id} scheme={scheme} match={matches.find((item) => item.schemeId === scheme.id)} />)}
       </div>
     </AppShell>
   );

@@ -4,7 +4,21 @@ export type EligibilityStatus =
   | "FULLY_ELIGIBLE"
   | "PARTIALLY_ELIGIBLE"
   | "UNLIKELY_ELIGIBLE"
-  | "NOT_ELIGIBLE";
+  | "NOT_ELIGIBLE"
+  | "INSUFFICIENT_INFORMATION";
+
+export type RequirementState = "satisfied" | "missing" | "unknown" | "not_satisfied";
+
+export type Relevance = "now" | "potential" | "future";
+
+export type RequirementCheck = {
+  name: string;
+  required: boolean;
+  state: RequirementState;
+  detail: string;
+};
+
+export const SCORING_VERSION = 2;
 
 export type MatchedCriterion = {
   name: string;
@@ -50,6 +64,11 @@ export type SchemeMatch = {
   nextSteps: string[];
   scoreBreakdown: ScoreBreakdown;
   websiteIdea?: string;
+  requirementChecks: RequirementCheck[];
+  factorNotes: string[];
+  relevance?: Relevance;
+  scoringVersion: number;
+  contextHash?: string;
   fallbackMode?: boolean;
   fallbackReason?: string;
   accuracyNote?: string;
