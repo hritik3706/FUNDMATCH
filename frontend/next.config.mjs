@@ -4,7 +4,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   async rewrites() {
-    const api = process.env.API_PROXY_URL ?? "http://localhost:3000";
+    const api = process.env.API_PROXY_URL ?? "http://127.0.0.1:3000";
     return [
       {
         source: "/api/:path*",
