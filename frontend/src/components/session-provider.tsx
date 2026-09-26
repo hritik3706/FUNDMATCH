@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { readJson, writeJson } from "@/lib/storage";
 import type { Profile, StartupStory, User } from "@/lib/types";
-import { currentUser, signIn, signOut, signUp } from "@/services/accountService";
+import { changePassword, currentUser, signIn, signOut, signUp, updateAccount } from "@/services/accountService";
 
 const PROFILE_KEY = "ps41.profile";
 const STORY_KEY = "ps41.story";
@@ -16,6 +16,8 @@ type SessionValue = {
   signUp: typeof signUp;
   signIn: typeof signIn;
   signOut: () => void;
+  updateAccount: typeof updateAccount;
+  changePassword: typeof changePassword;
   saveProfile: (profile: Profile) => void;
   saveStory: (story: StartupStory) => void;
 };
@@ -57,6 +59,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         signOut();
         setUser(null);
       },
+      updateAccount: async (input) => {
+        const session = await updateAccount(input);
+        setUser(session);
+        return session;
+      },
+      changePassword,
       saveProfile: (next) => {
         writeJson(PROFILE_KEY, next);
         setProfile(next);
