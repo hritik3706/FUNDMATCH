@@ -32,8 +32,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-surface md:grid md:grid-cols-[260px_1fr]">
-      <aside className="border-b border-white/10 bg-primary-container text-on-primary md:min-h-screen md:border-b-0 md:border-r">
+    <div className="min-h-screen bg-surface md:flex">
+      <aside className="border-b border-white/10 bg-primary-container text-on-primary md:sticky md:top-0 md:flex md:h-screen md:w-[260px] md:shrink-0 md:flex-col md:overflow-y-auto md:border-b-0 md:border-r">
         <div className="flex items-center justify-between px-4 py-4 md:block">
           <div className="rounded bg-surface-container-lowest px-3 py-2">
             <Brand />
@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
       </aside>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <header className="relative z-30 flex h-16 items-center justify-between border-b border-[#e2e8f0] bg-surface-container-lowest px-4 md:px-8">
           <p className="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
             {user ? user.name : "Guest session"}

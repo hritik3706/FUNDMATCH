@@ -17,10 +17,17 @@ export function fundingRange(min: number, max: number) {
 }
 
 export function displayStatus(status: BackendEligibilityStatus | null): DisplayEligibility {
-  if (!status) return "INSUFFICIENT_INFORMATION";
+  if (!status || status === "INSUFFICIENT_INFORMATION") return "INSUFFICIENT_INFORMATION";
   if (status === "FULLY_ELIGIBLE") return "ELIGIBLE";
   if (status === "NOT_ELIGIBLE") return "NOT_ELIGIBLE";
   return "POTENTIALLY_ELIGIBLE";
+}
+
+export function relevanceLabel(relevance: "now" | "potential" | "future" | undefined) {
+  if (relevance === "now") return "Relevant now";
+  if (relevance === "potential") return "Potentially relevant";
+  if (relevance === "future") return "Future opportunity";
+  return "";
 }
 
 export function statusLabel(status: DisplayEligibility) {

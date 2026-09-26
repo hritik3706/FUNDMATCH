@@ -6,9 +6,6 @@ import type { ReactNode } from "react";
 import { useSession } from "@/components/session-provider";
 import { Icon } from "@/components/ui";
 
-const LOGO =
-  "https://lh3.googleusercontent.com/aida/AEtjO1X2-QxHc1Kr8xPGsumrtfp933gfMf3XQ6JpyE7o698os-Zj5xV78y_-hBv43fmRv5_MzOUj_4L8A65QR08vsiMME3ie3Wu8ozx-b0mHO771zTEqI5kQ0d6RJ-648DwabhZdgA9NyVnRBbwJb9XONXfEEZnjhOdYvG5zar3OWUhvGeWcfXTcgnkMWx0oKP7J5mg7_2Ye_JkrPBSq5gRQ2QjgfS183dEDWENVtmDO6dETb09-WKT49hA3LOcW";
-
 function brandHref(signedIn: boolean, ready: boolean, pathname: string) {
   if (signedIn) return "/dashboard";
   const onPublicPage = pathname === "/" || pathname === "/login" || pathname === "/signup";
@@ -20,11 +17,8 @@ export function Brand() {
   const pathname = usePathname();
   const { ready, user } = useSession();
   return (
-    <Link href={brandHref(Boolean(user), ready, pathname)} className="flex shrink-0 items-center gap-2.5">
-      <span className="block h-8 w-8 shrink-0 overflow-hidden">
-        <img alt="" className="h-8 w-auto max-w-none object-contain object-left" src={LOGO} />
-      </span>
-      <span className="whitespace-nowrap font-headline-sm text-headline-sm font-bold tracking-tight text-primary">FundMatch</span>
+    <Link href={brandHref(Boolean(user), ready, pathname)} className="flex shrink-0 items-center" aria-label="FundMatch home">
+      <img alt="FundMatch" className="h-11 w-auto max-w-[220px] object-contain object-left" src="/fundmatch-wordmark.png" />
     </Link>
   );
 }

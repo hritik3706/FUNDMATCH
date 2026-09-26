@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { SchemeCard } from "@/components/scheme-card";
 import { Button, PageHeader, StateMessage } from "@/components/ui";
+import { useRelevantMatches } from "@/hooks/use-relevant-matches";
 import type { SchemeSummary } from "@/lib/types";
 import { listSchemes } from "@/services/schemeService";
 
 export default function MinistriesPage() {
+  const { matches } = useRelevantMatches();
   const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -45,7 +47,7 @@ export default function MinistriesPage() {
           <section key={name}>
             <h2 className="mb-4 font-headline-md text-headline-md font-bold text-on-surface">{name}</h2>
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              {items.map((scheme) => <SchemeCard key={scheme.id} scheme={scheme} />)}
+              {items.map((scheme) => <SchemeCard key={scheme.id} scheme={scheme} match={matches.find((item) => item.schemeId === scheme.id)} />)}
             </div>
           </section>
         ))}

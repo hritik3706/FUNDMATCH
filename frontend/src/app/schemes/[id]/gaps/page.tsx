@@ -7,11 +7,11 @@ import { AppShell } from "@/components/app-shell";
 import { useSession } from "@/components/session-provider";
 import { Button, PageHeader, Panel, StateMessage } from "@/components/ui";
 import type { SchemeMatch } from "@/lib/types";
-import { getMatch } from "@/services/matchService";
+import { getMatch, matchContext } from "@/services/matchService";
 
 export default function GapsPage() {
   const params = useParams<{ id: string }>();
-  const { profile } = useSession();
+  const { profile, story } = useSession();
   const [match, setMatch] = useState<SchemeMatch | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -20,7 +20,7 @@ export default function GapsPage() {
     if (!profile) return;
     setLoading(true);
     setError("");
-    getMatch(profile.id, params.id)
+    getMatch(profile.id, params.id, matchContext(story))
       .then((result) => setMatch(result.match))
       .catch((reason: Error) => setError(reason.message))
       .finally(() => setLoading(false));
@@ -29,7 +29,7 @@ export default function GapsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile?.id, params.id]);
+  }, [profile?.id, params.id, story.text, story.futureIntent]);
 
   return (
     <AppShell>

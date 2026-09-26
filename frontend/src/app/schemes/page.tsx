@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { SchemeCard } from "@/components/scheme-card";
 import { Button, PageHeader, StateMessage, TextField } from "@/components/ui";
+import { useRelevantMatches } from "@/hooks/use-relevant-matches";
 import type { SchemeSummary } from "@/lib/types";
 import { listSchemes } from "@/services/schemeService";
 
 export default function SchemesPage() {
+  const { matches } = useRelevantMatches();
   const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("all");
@@ -62,7 +64,7 @@ export default function SchemesPage() {
       {error ? <StateMessage title="Could not load schemes" body={error} action={<Button onClick={load}>Retry</Button>} /> : null}
       {!loading && !error && visible.length === 0 ? <StateMessage title="No schemes match" body="Try a different search or clear the filters." /> : null}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {visible.map((scheme) => <SchemeCard key={scheme.id} scheme={scheme} />)}
+        {visible.map((scheme) => <SchemeCard key={scheme.id} scheme={scheme} match={matches.find((item) => item.schemeId === scheme.id)} />)}
       </div>
     </AppShell>
   );

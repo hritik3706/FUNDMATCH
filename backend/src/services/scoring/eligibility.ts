@@ -1,16 +1,21 @@
-import { EligibilityStatus, Gap } from "../../types/matching.types";
+import { EligibilityStatus, RequirementCheck } from "../../types/matching.types";
 
-export function determineEligibility(score: number, gaps: Gap[]): EligibilityStatus {
-  const criticalGaps = gaps.filter((gap) => gap.impact === "high").length;
+export function determineEligibility(checks: RequirementCheck[]): EligibilityStatus {
+  if (checks.length === 0) {
+    return "INSUFFICIENT_INFORMATION";
+  }
 
-  if (score >= 75 && criticalGaps === 0) {
+  const required = checks.filter((check) => check.required);
+  const pool = required.length > 0 ? required : checks;
+
+  if (pool.every((check) => check.state === "unknown")) {
+    return "INSUFFICIENT_INFORMATION";
+  }
+  if (pool.some((check) => check.state === "not_satisfied")) {
+    return "NOT_ELIGIBLE";
+  }
+  if (pool.every((check) => check.state === "satisfied")) {
     return "FULLY_ELIGIBLE";
   }
-  if (score >= 50 && criticalGaps <= 2) {
-    return "PARTIALLY_ELIGIBLE";
-  }
-  if (score >= 25 && criticalGaps <= 5) {
-    return "UNLIKELY_ELIGIBLE";
-  }
-  return "NOT_ELIGIBLE";
+  return "PARTIALLY_ELIGIBLE";
 }
