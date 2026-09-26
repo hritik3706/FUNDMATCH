@@ -28,6 +28,7 @@ export default function ClassificationPage() {
             <p className="font-label-caps text-label-caps uppercase tracking-widest text-secondary">Current state</p>
             <dl className="mt-2">
               <Row label="Startup" value={profile.name} />
+              <Row label="Website" value={notProvided(profile.websiteUrl)} />
               <Row label="Primary sector" value={profile.sector} />
               <Row label="Sub-sector" value="Not provided" />
               <Row label="Stage" value={profile.stage} />

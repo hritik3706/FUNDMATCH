@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { DashboardSchemeCard } from "@/components/dashboard-scheme-card";
 import { useSession } from "@/components/session-provider";
 import { Button, PageHeader, Panel, StateMessage } from "@/components/ui";
+import { downloadEvaluationPdf } from "@/lib/evaluationPdf";
 import { inr } from "@/lib/format";
 import type { SchemeMatch, SchemeSummary } from "@/lib/types";
 import { savedSchemeIds, toggleSaved } from "@/services/accountService";
@@ -80,6 +81,11 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
+          {matches.length > 0 ? (
+            <div className="mt-6">
+              <Button variant="secondary" onClick={() => downloadEvaluationPdf(profile, matches)}>Download PDF</Button>
+            </div>
+          ) : null}
         </>
       ) : null}
     </AppShell>
