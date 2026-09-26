@@ -14,8 +14,7 @@ services:
     rootDir: backend
     plan: free
     buildCommand: npm install --include=dev && npm run build
-    preDeployCommand: node dist/db/migrate.js
-    startCommand: node dist/index.js
+    startCommand: node dist/db/migrate.js && node dist/index.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
