@@ -1,486 +1,1218 @@
-# FundMatch AI - Implementation Documentation Pack
+# 🚀 FundMatch
 
-Start with [fundmatchdocs/00_BUILD_PLAN.md](fundmatchdocs/00_BUILD_PLAN.md). That plan catalogs every source file, records where the hackathon spec and the later PS-41 taxonomy design disagree, and locks the build order. Specs `01`–`05` are in the repo root. `06_UI_UX_SPEC.md` and `07_MASTER_BUILD_PROMPT.md` were not in the provided source set.
+### AI-Powered Government Funding Intelligence for Startups
 
-## Overview
+> **Find the schemes you actually qualify for — understand why, identify what you're missing, and know what to do next.**
 
-This folder contains **7 comprehensive markdown files** that completely specify the FundMatch AI hackathon project for AI coding agents (Cursor, Claude Code, Codex, etc.).
-
-**Total pages:** ~114 pages of detailed specification
-**Purpose:** Enable any AI coding agent to build a working MVP in 6 hours
-**Scope:** Fully functional hackathon application with all P0 features
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-FundMatch-2563EB?style=for-the-badge&logo=vercel&logoColor=white)](https://fundmatch-web.onrender.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/shashank-4bt/FUNDMATCH)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#)
 
 ---
 
-## The 7 Files Explained
+## 🧠 What is FundMatch?
 
-### 1️⃣ **01_PRD.md** (Product Requirements Document)
-**Size:** 7.5 KB | **Read Time:** 15 minutes
+**FundMatch** is an AI-powered startup funding intelligence platform that helps founders discover and understand **government funding schemes relevant to their startup**.
 
-**What's in it:**
-- Product overview and value proposition
-- Problem statement (PS-41)
+Government funding information is scattered across:
+
+- Government portals
+- Ministry websites
+- Startup platforms
+- State government portals
+- PDFs and policy documents
+- Scheme-specific application pages
+
+Even after finding a scheme, founders still need to determine:
+
+> **"Am I actually eligible?"**
+
+FundMatch solves this by transforming a founder's startup information into a structured profile and comparing it against government scheme requirements.
+
+### The core idea
+
+```text
+Startup Story
+      +
+Onboarding Data
+      +
+Startup Website
+      ↓
+Unified Startup Profile
+      ↓
+AI Classification
+      ↓
+Government Scheme Retrieval
+      ↓
+Eligibility Analysis
+      ↓
+Match Scoring
+      ↓
+Gap Analysis
+      ↓
+Application Roadmap
+```
+
+---
+
+# 🎯 The Problem
+
+Startup founders often struggle to access government funding because the information is **fragmented, complex, and difficult to interpret**.
+
+A founder may have to manually search through dozens of portals and documents to answer simple questions:
+
+- Which schemes are relevant to my startup?
+- Does my sector qualify?
+- Does my startup stage qualify?
+- Is my location eligible?
+- What type of funding is available?
+- What documents are required?
+- What requirements am I currently missing?
+- How do I apply?
+
+The problem isn't simply **finding schemes**.
+
+The problem is understanding:
+
+> **Which schemes actually make sense for this particular startup?**
+
+---
+
+# 💡 The Solution
+
+FundMatch converts a startup's story and profile into structured funding intelligence.
+
+The platform:
+
+1. Understands the startup.
+2. Extracts information from the startup website when provided.
+3. Classifies the startup by relevant attributes.
+4. Retrieves government schemes.
+5. Determines which schemes are genuinely relevant.
+6. Calculates a meaningful match score.
+7. Separates **match relevance** from **actual eligibility**.
+8. Explains the eligibility requirements.
+9. Identifies missing requirements.
+10. Generates an actionable application roadmap.
+
+---
+
+# ⚡ What Makes FundMatch Different?
+
+FundMatch isn't designed as a generic chatbot that simply generates a list of schemes.
+
+It is designed as a **source-grounded funding intelligence system**.
+
+### Traditional Search
+
+```text
+Search Google
+      ↓
+Open Government Websites
+      ↓
+Read PDFs
+      ↓
+Understand Eligibility
+      ↓
+Compare Manually
+      ↓
+Figure Out Application
+```
+
+### FundMatch
+
+```text
+Tell us about your startup
+            ↓
+    FundMatch understands it
+            ↓
+    Retrieves relevant schemes
+            ↓
+    Compares requirements
+            ↓
+    Shows Match Score
+            ↓
+    Explains Eligibility
+            ↓
+    Identifies Missing Requirements
+            ↓
+    Generates Application Roadmap
+```
+
+---
+
+# 🔥 Core Features
+
+## 1. 🏢 Startup Intelligence
+
+Founders can provide information through:
+
+- Startup story
+- Structured onboarding
+- Startup website
+
+FundMatch combines these inputs into a **unified startup profile**.
+
+Relevant attributes can include:
+
+- Sector
+- Startup stage
+- Location
+- Business model
+- Technology
+- Funding requirement
 - Target users
-- Core workflow
-- P0 (Must-Have), P1 (Should-Have), P2 (Future) features
-- Functional and non-functional requirements
-- Success criteria for MVP
-
-**When to read:**
-- First thing - understand WHAT you're building
-- Whenever you're unsure if a feature is in scope
-
-**Key takeaway:** Founder → Profile Form → Schemes Ranked by Score → Eligibility Analysis → Action Plan → PDF Download (in 5 minutes)
+- Current business status
+- Future plans
+- Organization information
 
 ---
 
-### 2️⃣ **02_FEATURES_AND_USER_FLOWS.md** (User Interactions)
-**Size:** 9.8 KB | **Read Time:** 20 minutes
+## 2. 🌐 Website Intelligence with Firecrawl
 
-**What's in it:**
-- Complete list of 6 features with purpose, inputs, outputs
-- Main user flow (step-by-step)
-- Screen-by-screen flow with API calls
-- 2-3 minute demo flow (jury-ready)
-- Loading and error states
+When a founder provides their startup website, FundMatch can use **Firecrawl** to extract useful information.
 
-**When to read:**
-- Second - understand HOW users interact with the app
-- When building frontend components
-- When planning API responses
-
-**Key takeaway:** 7 screens, clear navigation, 6 major features
-
----
-
-### 3️⃣ **03_TECH_ARCHITECTURE.md** (Tech Stack & Design)
-**Size:** 16 KB | **Read Time:** 25 minutes
-
-**What's in it:**
-- Technology stack (React, Node, PostgreSQL, Claude API)
-- Architecture diagram (ASCII and Mermaid)
-- 4 application layers (Frontend, API, AI, Database)
-- Request flow (end-to-end)
-- Project folder structure
-- 6-hour hackathon simplifications
-
-**When to read:**
-- When setting up projects
-- When deciding between tech choices
-- When understanding data flow
-
-**Key takeaway:** React (Frontend) → Express (Backend) → PostgreSQL (Data) → Claude (AI)
-
----
-
-### 4️⃣ **04_AI_MATCHING_SPEC.md** (AI Engine Specification)
-**Size:** 16 KB | **Read Time:** 25 minutes
-
-**What's in it:**
-- AI objective and input/output data
-- Complete matching pipeline (6 steps)
-- Scoring formula with example calculations
-- Claude API prompt templates (matching + action plan)
-- Eligibility determination logic
-- Gap detection algorithm
-- Fallback strategy when Claude fails
-- Caching strategy
-
-**When to read:**
-- When implementing matching logic
-- When setting up Claude API calls
-- When designing score calculations
-- When testing the AI layer
-
-**Key takeaway:** Formula: (Sector×0.25 + Stage×0.25 + Location×0.15 + Funding×0.20 + Completeness×0.15) × 100
-
----
-
-### 5️⃣ **05_DATABASE_AND_API.md** (Data & Endpoints)
-**Size:** 17 KB | **Read Time:** 30 minutes
-
-**What's in it:**
-- Complete PostgreSQL schema (4 tables)
-- Field definitions and constraints
-- Sample demo data (15-20 schemes to seed)
-- All 6 API endpoints with:
-  - Request/response examples
-  - Validation rules
-  - Error codes
-- Complete curl examples
-
-**When to read:**
-- When setting up database
-- When creating tables
-- When implementing API endpoints
-- When testing with curl/Postman
-
-**Key takeaway:** 6 REST endpoints, 4 tables, 20 demo schemes
-
----
-
-### 6️⃣ **06_UI_UX_SPEC.md** (User Interface Design)
-**Size:** 27 KB | **Read Time:** 40 minutes
-
-**What's in it:**
-- Design direction (clean, modern, professional)
-- Color palette (blue primary, teal secondary, orange accents)
-- Typography (font sizes, weights)
-- 7 screens with detailed layouts (ASCII mockups)
-- Component specifications
-- Responsive behavior (mobile, tablet, desktop)
-- Loading/error/empty states
-- Accessibility requirements (WCAG AA)
-- Jury demo highlights
-
-**When to read:**
-- When building React components
-- When styling with Tailwind CSS
-- When testing responsive design
-- When planning component hierarchy
-
-**Key takeaway:** 7 screens, mobile-first, Tailwind CSS, high contrast
-
----
-
-### 7️⃣ **07_MASTER_BUILD_PROMPT.md** (AI Coding Agent Prompt)
-**Size:** 21 KB | **Read Time:** 35 minutes
-
-**What's in it:**
-- Direct prompt for Cursor/Claude Code
-- Role and goals
-- Build priority order (4 phases)
-- Phase 0: Project setup (30 min)
-- Phase 1: Backend & Database (2 hours)
-- Phase 2: Frontend (3 hours)
-- Phase 3: AI Integration (2 hours)
-- Phase 4: Polish & Deploy (1.5 hours)
-- What NOT to do
-- Key implementation details
-- Testing checklist
-- Deployment checklist
-- Time management strategy
-- Emergency procedures
-
-**When to read:**
-- When starting actual coding
-- When unsure about execution order
-- When managing time
-- When facing obstacles
-
-**Key takeaway:** Execute in 4 phases, 6 hours total, P0 features only
-
----
-
-## How to Use These Files
-
-### Option A: Manual Implementation (6 hours)
-
-**Timeline:**
-1. **Before coding:** Read docs 1, 2, 3 (1 hour)
-2. **Phase 0 (30 min):** Reference doc 3 for setup
-3. **Phase 1 (2 hours):** Reference docs 3, 5 for backend
-4. **Phase 2 (3 hours):** Reference docs 2, 6 for frontend
-5. **Phase 3 (2 hours):** Reference docs 4, 5, 7 for AI
-6. **Phase 4 (1.5 hours):** Reference docs 6, 7 for polish
-
-**Key docs by task:**
-- Database setup → Doc 5
-- API implementation → Doc 5, 7
-- Frontend components → Doc 2, 6
-- Styling → Doc 6
-- AI matching → Doc 4
-- Testing → Doc 7
-
-### Option B: AI Coding Agent (Cursor)
-
-1. Copy doc 7 (Master Build Prompt) entirely
-2. Paste into Cursor/Claude Code
-3. Agent reads docs 1-6 automatically as needed
-4. Agent builds entire application
-5. Costs ~6 hours of time
-
-**Pro tip:** Have docs open in separate tabs while agent codes, for quick reference.
-
-### Option C: Hybrid (You Code, Agent Helps)
-
-1. You read doc 7 to understand phases
-2. You manually implement Phase 0-1 (backend)
-3. You ask Cursor for Phase 2 code (frontend)
-4. You manually integrate Phase 3 (AI)
-5. You use Cursor for Phase 4 (polish)
-
----
-
-## File Organization
-
-```
-FundMatch_AI_Complete_Specification/
-├── 01_PRD.md                           (Product spec)
-├── 02_FEATURES_AND_USER_FLOWS.md      (UX flows)
-├── 03_TECH_ARCHITECTURE.md            (Tech stack)
-├── 04_AI_MATCHING_SPEC.md             (AI engine)
-├── 05_DATABASE_AND_API.md             (Data & APIs)
-├── 06_UI_UX_SPEC.md                   (UI design)
-├── 07_MASTER_BUILD_PROMPT.md          (Build instructions)
-└── README_IMPLEMENTATION_DOCS.md      (This file - you are here)
+```text
+Startup Website
+      ↓
+Firecrawl
+      ↓
+Relevant Website Content
+      ↓
+Startup Information Extraction
+      ↓
+Unified Startup Profile
 ```
 
----
-
-## Reading Recommendations
-
-### If you have 30 minutes:
-- Read docs 1 + 7
-- You'll understand what to build and how to build it
-
-### If you have 1 hour:
-- Read docs 1 + 2 + 3
-- You'll understand product, users, and tech stack
-
-### If you have 2 hours:
-- Read docs 1 + 2 + 3 + 7
-- Ready to start coding with clear direction
-
-### If you have 3+ hours:
-- Read all 7 docs in order
-- Complete deep understanding before coding
-- Coding will be faster with all details known
+This prevents the founder from having to manually enter every piece of information already available on their website.
 
 ---
 
-## Key Facts to Know
+# 🤖 AI-Powered Startup Classification
 
-### Scope (from Doc 1 - PRD)
-- **Problem:** Founders can't identify which government schemes they qualify for
-- **Solution:** AI agent that analyzes profile and ranks schemes
-- **MVP:** Working web app with 6 features
-- **Time:** 6 hours to build
-- **Schemes:** 15-20 demo schemes pre-seeded
+FundMatch uses **Google Gemini** to understand unstructured startup information.
 
-### Features (from Doc 2 - Features)
-1. Profile form (6 fields)
-2. Scheme database (20+ schemes)
-3. AI matching (Claude API)
-4. Results dashboard (ranked schemes)
-5. Eligibility analysis (detailed breakdown)
-6. Action plan generation (PDF export)
+For example:
 
-### Stack (from Doc 3 - Architecture)
-- **Frontend:** React 18 + TypeScript + Tailwind
-- **Backend:** Node.js + Express + TypeScript
-- **Database:** PostgreSQL
-- **AI:** Claude API (Anthropic)
-- **Deployment:** Vercel (frontend) + Railway (backend)
-
-### Scoring (from Doc 4 - AI Spec)
-```
-Score = (Sector×25% + Stage×25% + Location×15% + Funding×20% + Completeness×15%) × 100
+```text
+"We are building an AI system that helps hospitals
+identify high-risk patients using clinical data."
 ```
 
-### Database (from Doc 5 - Database)
-- 4 tables: profiles, schemes, matches, action_plans
-- 20 demo schemes to seed
-- 6 API endpoints
+can be transformed into structured information such as:
 
-### Design (from Doc 6 - UI/UX)
-- 7 screens (Home, Form, Loading, Results, Details, Action Plan)
-- Tailwind CSS styling
-- Mobile-responsive
-- Blue + Teal + Orange color scheme
+```json
+{
+  "sector": "Healthcare",
+  "technology": ["Artificial Intelligence"],
+  "stage": "Early Stage",
+  "location": "Uttar Pradesh",
+  "use_case": "Clinical Decision Support"
+}
+```
 
-### Timeline (from Doc 7 - Master Prompt)
-- Phase 0: Setup (30 min) - 9:00-9:30 AM
-- Phase 1: Backend (2 hrs) - 9:30-11:30 AM
-- LUNCH (1 hour)
-- Phase 2: Frontend (3 hrs) - 12:30-3:30 PM
-- Phase 3: AI (2 hrs) - 3:30-5:30 PM
-- Phase 4: Polish (1.5 hrs) - 5:30-7:00 PM
+This structured profile becomes the foundation for scheme matching.
 
 ---
 
-## Cross-References
+# 🔎 Government Scheme Discovery
 
-**Need to know something specific?**
+FundMatch searches for government schemes relevant to the startup's profile.
 
-Q: How should the form look?
-A: See Doc 6, Screen 2 (ProfileForm)
+The system considers factors such as:
 
-Q: What's the API response for matching?
-A: See Doc 5, Endpoint 3 (POST /api/matches/analyze)
+- Sector
+- Startup stage
+- Geography
+- Founder/startup category
+- Funding purpose
+- Technology
+- Business characteristics
+- Scheme requirements
 
-Q: What fields does a Scheme have?
-A: See Doc 5, Table 2 (schemes table)
+### No artificial result limit
 
-Q: How does Claude API get called?
-A: See Doc 4, Claude API Prompt Template
+FundMatch does **not** force every startup into an arbitrary "Top 10 Schemes" list.
 
-Q: What are the 6 features?
-A: See Doc 2, Feature List
+If:
 
-Q: What's the build order?
-A: See Doc 7, Build Priority Order
+```text
+1 relevant scheme
+```
 
-Q: How should schemes be ranked?
-A: See Doc 4, Scoring Formula
+exists → show 1.
 
-Q: What URLs should frontend call?
-A: See Doc 5, All API Endpoints
+If:
 
----
+```text
+20 relevant schemes
+```
 
-## Success Criteria (From Doc 1 & 7)
+exist → show 20.
 
-**By 7 PM, the application must:**
-- ✅ Founder fills profile form
-- ✅ System shows matching schemes ranked by score
-- ✅ Eligibility reasoning visible
-- ✅ Missing requirements listed
-- ✅ Action plan generated (5+ steps)
-- ✅ PDF downloadable
-- ✅ Complete flow works end-to-end
-- ✅ No crashes during demo
+If:
 
----
+```text
+37 relevant schemes
+```
 
-## Emergency Reference
+exist → show 37.
 
-**Scoring formula stuck?** → Doc 4, Page "Scoring Formula"
-**API endpoint confused?** → Doc 5, "API Endpoints" section
-**Component design needed?** → Doc 6, "Required Screens" section
-**Time running out?** → Doc 7, "Emergency Procedures"
-**Database schema?** → Doc 5, "Database Schema" section
-**UI mocking?** → Doc 2, "Screen-Level Flow" or Doc 6, "Design Direction"
+If:
 
----
+```text
+0 relevant schemes
+```
 
-## Quality Checklist
+exist → clearly show:
 
-Before demo, verify from docs:
+> **No relevant schemes found**
 
-**From Doc 1 (PRD):**
-- [ ] All P0 features implemented
-- [ ] No P2 features included (scope creep prevention)
-
-**From Doc 2 (Flows):**
-- [ ] Main user flow works end-to-end
-- [ ] All 7 screens accessible
-- [ ] Demo flow is 2-3 minutes
-
-**From Doc 3 (Architecture):**
-- [ ] Tech stack matches specification
-- [ ] Project structure follows spec
-
-**From Doc 4 (AI Spec):**
-- [ ] Scoring formula implemented correctly
-- [ ] Claude API integration working
-- [ ] Fallback mode works if API fails
-
-**From Doc 5 (Database & API):**
-- [ ] All 4 tables created
-- [ ] All 6 endpoints implemented
-- [ ] Demo data seeded
-
-**From Doc 6 (UI/UX):**
-- [ ] All 7 screens match layouts
-- [ ] Tailwind styling applied
-- [ ] Mobile-responsive
-- [ ] Accessibility checks pass
-
-**From Doc 7 (Build):**
-- [ ] Phases completed in order
-- [ ] Testing checklist passed
-- [ ] No console errors
-- [ ] Deployment ready
+rather than padding the results with unrelated schemes.
 
 ---
 
-## File Sizes & Read Times
+# 📊 Match Score
 
-| Doc | File | Size | Read Time | Focus |
-|-----|------|------|-----------|-------|
-| 1 | 01_PRD.md | 7.5 KB | 15 min | What/Why |
-| 2 | 02_FEATURES_AND_USER_FLOWS.md | 9.8 KB | 20 min | How Users Interact |
-| 3 | 03_TECH_ARCHITECTURE.md | 16 KB | 25 min | How It's Built |
-| 4 | 04_AI_MATCHING_SPEC.md | 16 KB | 25 min | AI Logic |
-| 5 | 05_DATABASE_AND_API.md | 17 KB | 30 min | Data & APIs |
-| 6 | 06_UI_UX_SPEC.md | 27 KB | 40 min | User Interface |
-| 7 | 07_MASTER_BUILD_PROMPT.md | 21 KB | 35 min | Build Steps |
-| **TOTAL** | **~114 KB** | **~190 min** | |
+Every relevant scheme receives a **Match Score** based on actual startup-to-scheme alignment.
 
-**Time to read all:** ~3-4 hours (optional)
-**Time to implement:** ~6 hours (required)
-**Total project time:** 9-10 hours
+Example:
 
----
+```text
+┌─────────────────────────────────────┐
+│ Startup India Seed Fund             │
+│                                     │
+│ 92% Match                           │
+│                                     │
+│ Healthcare ✓                        │
+│ Early Stage ✓                      │
+│ Uttar Pradesh ✓                    │
+│ Technology Startup ✓               │
+└─────────────────────────────────────┘
+```
 
-## Consistency Guarantee
+The match score represents:
 
-All 7 documents are **internally consistent**:
-- Same terminology throughout
-- Same data models referenced
-- Same scoring formula
-- Same tech stack
-- Same user flows
-- No contradictions
-- Cross-references verified
+> **How closely the startup profile aligns with the scheme.**
 
-If you find an inconsistency, it's an error in documentation, not an ambiguity.
+It does **not** automatically mean:
+
+> "You are eligible."
 
 ---
 
-## How to Give Feedback
+# ⚠️ Match Score ≠ Eligibility
 
-If implementing and you find:
-- An error in the spec → Note it, keep building
-- An ambiguity → Make a reasonable decision, document it
-- A better approach → Use it, it's your project
-- Something missing → Estimate and add it
+This distinction is one of the most important parts of FundMatch.
 
-The docs are a starting point. You have permission to improve.
+A startup may have:
 
----
+```text
+95% Match
+```
 
-## Good Luck! 🚀
+but still be:
 
-You have everything needed to build FundMatch AI.
+```text
+Not Currently Eligible
+```
 
-**The specs are complete. The path is clear. The time is set.**
+because it is missing a mandatory requirement.
 
-**Go build something awesome.**
+For example:
 
----
+```text
+Match Score: 95%
 
-## Quick Links (Search for)
+Eligibility:
+⚠️ Conditional
 
-**In Doc 1:**
-- "P0 Features" for MVP scope
-- "Success Criteria" for definition of done
+Missing:
+DPIIT recognition
+```
 
-**In Doc 2:**
-- "Main User Flow" for full journey
-- "Demo Flow" for jury demo script
-
-**In Doc 3:**
-- "Architecture Diagram" for system design
-- "Project Folder Structure" for file org
-
-**In Doc 4:**
-- "Scoring Formula" for calculation
-- "Claude API Prompt" for exact prompts
-
-**In Doc 5:**
-- "Database Schema" for table definitions
-- "API Endpoints" for all routes
-
-**In Doc 6:**
-- "Required Screens" for all 7 screens
-- "Responsive Behavior" for mobile
-
-**In Doc 7:**
-- "Build Priority Order" for phases
-- "Emergency Procedures" for when stuck
+This prevents the system from misleading founders.
 
 ---
 
-**Now read Doc 1 and then Doc 7. Get started. 💪**
+# 🧾 Requirement-by-Requirement Eligibility
+
+Instead of simply displaying:
+
+> "Eligible"
+
+FundMatch can break eligibility into individual requirements.
+
+Example:
+
+| Requirement | Status |
+|---|---|
+| Healthcare sector | ✅ Met |
+| Early-stage startup | ✅ Met |
+| Uttar Pradesh | ✅ Met |
+| DPIIT recognition | ⚠️ Missing |
+| Required incorporation age | ✅ Met |
+| Required documents | ⚠️ Partial |
+
+This makes the decision explainable.
+
+---
+
+# 🧩 Gap Analysis
+
+FundMatch identifies what is preventing a startup from becoming eligible.
+
+Example:
+
+```text
+CURRENT STARTUP
+      ↓
+Scheme Requirements
+      ↓
+┌──────────────────────────────┐
+│ ✓ Healthcare Sector          │
+│ ✓ Early Stage               │
+│ ✓ Uttar Pradesh             │
+│ ✗ DPIIT Recognition         │
+│ ✗ Required Certificate      │
+└──────────────────────────────┘
+      ↓
+GAP ANALYSIS
+      ↓
+Actionable Next Steps
+```
+
+Instead of saying:
+
+> "You are not eligible."
+
+FundMatch can explain:
+
+> **"You currently meet 4 of 6 major requirements. Obtain DPIIT recognition and the required certificate before applying."**
+
+---
+
+# 🛣️ Application Roadmap
+
+After eligibility analysis, FundMatch can generate an actionable roadmap.
+
+Example:
+
+```text
+STEP 01
+Obtain DPIIT Recognition
+
+        ↓
+
+STEP 02
+Prepare Required Certificates
+
+        ↓
+
+STEP 03
+Prepare Business Documents
+
+        ↓
+
+STEP 04
+Prepare Technical Proposal
+
+        ↓
+
+STEP 05
+Submit Application
+
+        ↓
+
+STEP 06
+Track Application Status
+```
+
+The goal is to move from:
+
+**Discovery → Understanding → Action**
+
+---
+
+# 📋 Detailed Scheme Information
+
+Each scheme can provide a comprehensive view containing:
+
+- Scheme name
+- Ministry
+- Geographic scope
+- Overview
+- Match score
+- Why it matches
+- Eligibility status
+- Eligibility requirements
+- Requirement-by-requirement analysis
+- Funding/benefits
+- Important conditions
+- Required documents
+- Application process
+- Important dates
+- Missing requirements
+- Recommended next action
+- Official source
+
+Important information is emphasized without turning the interface into a wall of bold text.
+
+---
+
+# 🏛️ Ministry & Government Source Awareness
+
+FundMatch is designed around **official government information** rather than relying purely on generated answers.
+
+The system can associate schemes with:
+
+- Ministry
+- Department
+- Government organization
+- State
+- Central government
+- Official scheme portal
+
+This provides stronger traceability and helps founders verify the original information.
+
+---
+
+# 🧠 Source-Grounded AI Architecture
+
+One of the fundamental design principles of FundMatch is:
+
+> **AI should interpret information — not invent government rules.**
+
+Conceptually:
+
+```text
+Official Government Information
+            ↓
+      Retrieval Layer
+            ↓
+   Relevant Scheme Data
+            ↓
+ Structured Requirements
+            ↓
+ Deterministic Eligibility Logic
+            ↓
+       Match Scoring
+            ↓
+       Gap Analysis
+            ↓
+      Gemini Explanation
+```
+
+This architecture reduces the risk of an LLM simply hallucinating eligibility requirements.
+
+---
+
+# 🛡️ Handling Uncertainty
+
+FundMatch should never pretend to know something it doesn't know.
+
+If information is insufficient:
+
+```text
+Insufficient Information
+        ↓
+Ask Founder for Missing Data
+```
+
+instead of:
+
+```text
+Missing Information
+        ↓
+AI Guess
+        ↓
+Incorrect Eligibility
+```
+
+This principle is especially important when dealing with government schemes.
+
+---
+
+# 🧪 Edge Cases
+
+FundMatch is designed with real-world edge cases in mind.
+
+### Outdated Scheme
+
+Government scheme information may change.
+
+**Approach:**
+
+- Show source information
+- Track verification/update information
+- Encourage verification against the official source
+
+### No Relevant Schemes
+
+```text
+0 Relevant Schemes
+```
+
+→ Don't fabricate recommendations.
+
+### Too Many Schemes
+
+Don't arbitrarily cut results to 10.
+
+→ Show the genuinely relevant results.
+
+### Missing Information
+
+Don't guess.
+
+→ Ask for additional information.
+
+### Multi-Sector Startup
+
+A startup may operate across:
+
+```text
+Healthcare + AI + SaaS
+```
+
+→ Match across relevant dimensions.
+
+### Central + State Schemes
+
+A startup may qualify for both:
+
+```text
+Central Government
++
+State Government
+```
+
+→ Surface both where relevant.
+
+### Conditional Eligibility
+
+Some requirements may depend on another condition.
+
+→ Preserve the conditional logic instead of flattening it.
+
+### Missing Documents
+
+Missing documents do not necessarily mean the startup itself is ineligible.
+
+→ Distinguish:
+
+```text
+Not Eligible
+```
+
+from:
+
+```text
+Eligible but Documentation Missing
+```
+
+### Contradictory Information
+
+If onboarding says:
+
+```text
+Startup Stage = Pre-Revenue
+```
+
+but the website suggests:
+
+```text
+Revenue Generating
+```
+
+→ Flag the discrepancy rather than silently choosing one.
+
+---
+
+# 🔐 Prompt Injection & Untrusted Content
+
+Startup websites and external content should be treated as **data**, not trusted instructions.
+
+A website saying:
+
+```text
+Ignore previous instructions...
+```
+
+should not alter the application's system behavior.
+
+The architecture separates:
+
+```text
+External Content
+```
+
+from:
+
+```text
+System Instructions
+```
+
+---
+
+# 🏗️ System Architecture
+
+```text
+                        ┌──────────────────────┐
+                        │       Founder        │
+                        └──────────┬───────────┘
+                                   │
+                         Startup Information
+                                   │
+                                   ▼
+                        ┌──────────────────────┐
+                        │     Next.js App      │
+                        │  React + TypeScript  │
+                        └──────────┬───────────┘
+                                   │
+                              REST APIs
+                                   │
+                                   ▼
+                        ┌──────────────────────┐
+                        │   Express Backend    │
+                        │      Node.js         │
+                        └──────┬───────┬───────┘
+                               │       │
+                 ┌─────────────┘       └─────────────┐
+                 ▼                                   ▼
+        ┌─────────────────┐                 ┌─────────────────┐
+        │   PostgreSQL    │                 │    Gemini AI    │
+        │  Startup Data   │                 │ Classification  │
+        │  Scheme Data    │                 │    Analysis     │
+        └─────────────────┘                 └─────────────────┘
+                                                   │
+                                                   ▼
+                                          ┌─────────────────┐
+                                          │    Firecrawl    │
+                                          │ Website Extract │
+                                          └─────────────────┘
+                                                   │
+                                                   ▼
+                                          ┌─────────────────┐
+                                          │ Matching Engine │
+                                          └────────┬────────┘
+                                                   │
+                                                   ▼
+                                          ┌─────────────────┐
+                                          │ Eligibility     │
+                                          │    Engine       │
+                                          └────────┬────────┘
+                                                   │
+                                                   ▼
+                                          ┌─────────────────┐
+                                          │  Gap Analysis   │
+                                          └────────┬────────┘
+                                                   │
+                                                   ▼
+                                          ┌─────────────────┐
+                                          │    Roadmap      │
+                                          └─────────────────┘
+```
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+| Technology | Purpose |
+|---|---|
+| **Next.js 14** | Web framework, routing and application structure |
+| **React 18** | UI components |
+| **TypeScript** | Type safety |
+| **Tailwind CSS** | Styling and responsive UI |
+
+---
+
+## Backend
+
+| Technology | Purpose |
+|---|---|
+| **Node.js** | Backend runtime |
+| **Express.js** | REST API framework |
+| **TypeScript** | Backend type safety |
+| **Zod** | Request/data validation |
+| **CORS** | Cross-origin API communication |
+| **dotenv** | Environment configuration |
+
+---
+
+## Database
+
+### PostgreSQL
+
+Used for structured application data such as:
+
+- Users
+- Startup profiles
+- Scheme information
+- Eligibility information
+- Applications
+- User activity
+
+---
+
+## AI & Intelligence
+
+### Google Gemini
+
+Used for:
+
+- Startup understanding
+- Classification
+- Information extraction
+- Scheme analysis
+- Natural-language explanations
+
+### Firecrawl
+
+Used for:
+
+- Startup website extraction
+- Website content enrichment
+- Structured information extraction
+
+### Retrieval + Eligibility Engine
+
+Used to connect:
+
+```text
+Government Information
+        ↓
+Relevant Scheme
+        ↓
+Requirements
+        ↓
+Startup Profile
+        ↓
+Eligibility Analysis
+```
+
+---
+
+## Deployment
+
+### Render
+
+FundMatch can be deployed using:
+
+- Frontend service
+- Backend/API service
+- PostgreSQL database
+
+---
+
+## PDF Generation
+
+FundMatch can use:
+
+- `jsPDF`
+- `html2canvas`
+
+for report/export functionality.
+
+---
+
+# 📦 Repository Structure
+
+```text
+FUNDMATCH/
+│
+├── frontend/
+│   ├── app/
+│   ├── components/
+│   ├── services/
+│   └── ...
+│
+├── backend/
+│   ├── routes/
+│   ├── controllers/
+│   ├── services/
+│   ├── models/
+│   └── ...
+│
+├── README.md
+├── package.json
+└── ...
+```
+
+> Directory names may evolve as the project architecture develops.
+
+---
+
+# 🎬 Demo Flow
+
+A typical FundMatch demonstration:
+
+### 01 — Founder Introduction
+
+Founder enters:
+
+> "We are an early-stage healthcare startup building an AI-powered clinical decision-support platform."
+
+### 02 — Startup Information
+
+The platform collects:
+
+```text
+Sector       → Healthcare
+Technology   → AI
+Stage        → Early Stage
+Location     → Uttar Pradesh
+Funding Need → ₹25 Lakh
+```
+
+### 03 — Website Analysis
+
+Founder optionally provides the startup website.
+
+FundMatch extracts additional information using Firecrawl.
+
+### 04 — AI Classification
+
+Gemini converts the information into a structured startup profile.
+
+### 05 — Scheme Discovery
+
+Relevant government schemes are retrieved.
+
+### 06 — Match Score
+
+Example:
+
+```text
+92% Match
+```
+
+### 07 — Eligibility
+
+The system checks individual requirements.
+
+### 08 — Gap Analysis
+
+Missing requirements are highlighted.
+
+### 09 — Application Roadmap
+
+The founder receives actionable next steps.
+
+---
+
+# 🧑‍💻 Example Startup
+
+## MediPredict AI
+
+**Location:** Lucknow, Uttar Pradesh  
+**Sector:** Healthcare  
+**Stage:** Early Stage  
+**Technology:** Artificial Intelligence  
+**Funding Requirement:** ₹25 Lakh
+
+> MediPredict AI is an early-stage healthcare startup based in Lucknow, Uttar Pradesh, developing an AI-powered clinical decision-support platform that analyzes patient history, clinical parameters, and diagnostic data to help hospitals and doctors identify high-risk patients at an early stage. The startup is currently developing its MVP and conducting pilot testing with small healthcare providers. It is seeking ₹25 lakh in funding for AI model development, product development, data security, pilot deployments, and market expansion. Over the next two years, MediPredict AI plans to expand into remote patient monitoring and preventive healthcare solutions, with the goal of making intelligent healthcare technology more accessible to hospitals and clinics.
+
+FundMatch can then determine which funding opportunities align with this profile.
+
+---
+
+# 💰 Business Model
+
+FundMatch can evolve beyond a scheme discovery tool into a broader **funding intelligence marketplace**.
+
+## 1. Freemium
+
+### Free
+
+- Basic scheme discovery
+- Basic startup profile
+- Basic matching
+
+### Premium
+
+- Detailed eligibility analysis
+- Gap analysis
+- Application roadmaps
+- Document assistance
+- Application tracking
+- Funding alerts
+
+---
+
+## 2. Incubators & Accelerators
+
+B2B offering for organizations managing startup portfolios.
+
+Potential features:
+
+```text
+Portfolio Dashboard
+        ↓
+Analyze Multiple Startups
+        ↓
+Funding Opportunities
+        ↓
+Eligibility Insights
+        ↓
+Application Tracking
+```
+
+---
+
+## 3. Institutional Partnerships
+
+Potential customers include:
+
+- Universities
+- Startup cells
+- Incubators
+- Innovation centers
+- Entrepreneurship programs
+
+---
+
+# 🌐 Future Vision
+
+FundMatch can eventually expand beyond government schemes.
+
+```text
+Government Schemes
+        ↓
+Government Grants
+        ↓
+Incubators
+        ↓
+Accelerators
+        ↓
+Loans
+        ↓
+Corporate Funding
+        ↓
+Angel Investors
+        ↓
+VC Funding
+```
+
+### Long-term vision
+
+> **Build a funding intelligence layer that connects startups with the right capital at the right stage.**
+
+---
+
+# 🧭 Product Roadmap
+
+### Phase 1 — Government Funding Discovery
+
+- Startup profiling
+- Scheme discovery
+- Match scoring
+- Eligibility analysis
+
+### Phase 2 — Funding Intelligence
+
+- Gap analysis
+- Application roadmaps
+- Document assistance
+- Application tracking
+- Notifications
+
+### Phase 3 — Funding Marketplace
+
+- Incubators
+- Accelerators
+- Grants
+- Loans
+- Investors
+- Corporate programs
+
+---
+
+# 🧠 Engineering Philosophy
+
+FundMatch follows a simple principle:
+
+> **Use AI where interpretation is difficult. Use deterministic logic where correctness matters.**
+
+### AI handles:
+
+- Understanding startup stories
+- Extracting information
+- Classification
+- Natural-language explanations
+
+### Structured systems handle:
+
+- Eligibility rules
+- Requirement checking
+- Match calculations
+- Data validation
+- Source tracking
+
+This division creates a system that is both **intelligent and explainable**.
+
+---
+
+# 🏆 Why Not Just Use ChatGPT?
+
+ChatGPT can generate a list of potential government schemes.
+
+FundMatch is designed around a different workflow:
+
+```text
+Startup Profile
+      ↓
+Structured Attributes
+      ↓
+Official Scheme Data
+      ↓
+Requirement Extraction
+      ↓
+Eligibility Comparison
+      ↓
+Match Score
+      ↓
+Gap Analysis
+      ↓
+Application Roadmap
+```
+
+The objective isn't simply to answer:
+
+> "Which schemes exist?"
+
+It is to answer:
+
+> **"Which schemes are relevant to my startup, why do they match, what requirements do I satisfy, what am I missing, and what should I do next?"**
+
+---
+
+# ⚙️ Why Multi-Agent / Multi-Stage Intelligence?
+
+Different parts of the problem require different forms of reasoning.
+
+```text
+Startup Understanding
+        ↓
+Information Extraction
+        ↓
+Scheme Retrieval
+        ↓
+Eligibility Reasoning
+        ↓
+Gap Analysis
+        ↓
+Action Planning
+```
+
+Separating these stages makes the system easier to validate, debug and improve than asking one model to perform the entire task in a single prompt.
+
+---
+
+# 📈 Scalability
+
+The architecture is designed to avoid scraping government websites from scratch for every user query.
+
+A scalable approach is:
+
+```text
+Government Sources
+        ↓
+Ingestion
+        ↓
+Structured Knowledge Layer
+        ↓
+Indexed Retrieval
+        ↓
+User Query
+        ↓
+Relevant Schemes
+```
+
+This allows scheme information to be processed independently from user requests.
+
+---
+
+# 🔒 Reliability Principles
+
+FundMatch prioritizes:
+
+### Source Awareness
+
+Government information should remain traceable to its source.
+
+### Explainability
+
+Every major recommendation should have a reason.
+
+### Uncertainty
+
+Unknown information should remain unknown.
+
+### Separation of Concerns
+
+AI interpretation and eligibility logic should not be unnecessarily coupled.
+
+### User Control
+
+The founder should be able to inspect the requirements before taking action.
+
+---
+
+# 🌟 Vision
+
+FundMatch started with a simple question:
+
+> **"What government funding can my startup actually apply for?"**
+
+The larger vision is much bigger:
+
+> **Make funding discovery intelligent, explainable, and actionable for every startup.**
+
+---
+
+# 👥 Team
+
+### Built by
+
+| Member | GitHub | LinkedIn |
+|---|---|---|
+| **Shashank Kumar Singh** | [@shashank-4bt](https://github.com/shashank-4bt) | [LinkedIn](https://www.linkedin.com/in/shashank-kumar-singh-a8aa9930a/) |
+| **Hritik Kumar Srivastava** | [@hritik3706](https://github.com/hritik3706) | [LinkedIn](https://www.linkedin.com/in/hritik-kumar-srivastava-b52b7720b/) |
+| **Kirt Raj Dixit** | [@coderkirt](https://github.com/coderkirt) | [LinkedIn](https://www.linkedin.com/in/kirt-raj-dixit-6573b6387/) |
+
+---
+
+# 🔗 Links
+
+### 🌐 Live Application
+
+https://fundmatch-web.onrender.com/
+
+### 💻 GitHub
+
+https://github.com/shashank-4bt/FUNDMATCH
+
+### 👨‍💻 Team
+
+**Shashank Kumar Singh**  
+GitHub: https://github.com/shashank-4bt  
+LinkedIn: https://www.linkedin.com/in/shashank-kumar-singh-a8aa9930a/
+
+**Hritik Kumar Srivastava**  
+GitHub: https://github.com/hritik3706  
+LinkedIn: https://www.linkedin.com/in/hritik-kumar-srivastava-b52b7720b/
+
+**Kirt Raj Dixit**  
+GitHub: https://github.com/coderkirt  
+LinkedIn: https://www.linkedin.com/in/kirt-raj-dixit-6573b6387/
+
+---
+
+# ⭐ FundMatch
+
+### **Discover funding. Understand eligibility. Close the gap. Take action.**
+
+> **FundMatch — Turning startup information into funding intelligence.**
